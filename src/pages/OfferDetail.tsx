@@ -2,6 +2,8 @@ import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Calendar, Tag } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
+import { RevealSection } from "@/components/animations";
+import { useStaggerReveal } from "@/hooks/useRevealOnScroll";
 
 // Same placeholder data - will be replaced with database query in Phase 2
 const placeholderPosts = [
@@ -62,12 +64,13 @@ const OfferDetail = () => {
   const { t, language } = useLanguage();
 
   const post = placeholderPosts.find((p) => p.slug === slug);
+  const { containerRef: galleryRef, visibleItems: galleryVisible } = useStaggerReveal(post?.gallery?.length || 0);
 
   if (!post) {
     return (
       <div className="min-h-[50vh] flex flex-col items-center justify-center">
         <h1 className="text-2xl font-heading font-bold mb-4">Post not found</h1>
-        <Button asChild>
+        <Button asChild className="transition-all duration-300 hover:scale-105">
           <Link to="/offers">
             <ArrowLeft className="mr-2" size={16} />
             {t("offers.title")}
@@ -86,7 +89,7 @@ const OfferDetail = () => {
   return (
     <div className="flex flex-col">
       {/* Hero Image */}
-      <section className="relative h-[50vh] min-h-[400px]">
+      <section className="relative h-[50vh] min-h-[400px] overflow-hidden">
         <div className="absolute inset-0 image-placeholder">
           <img
             src={post.coverImageUrl}
@@ -97,16 +100,18 @@ const OfferDetail = () => {
         </div>
         <div className="absolute inset-0 flex items-end">
           <div className="container-custom pb-12">
-            <Link
-              to="/offers"
-              className="inline-flex items-center gap-2 text-primary-foreground/80 hover:text-primary-foreground mb-4 transition-colors"
-            >
-              <ArrowLeft size={16} />
-              {t("offers.title")}
-            </Link>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-primary-foreground max-w-3xl">
-              {post.title[language as keyof typeof post.title]}
-            </h1>
+            <RevealSection>
+              <Link
+                to="/offers"
+                className="inline-flex items-center gap-2 text-primary-foreground/80 hover:text-primary-foreground mb-4 transition-all duration-300 hover:-translate-x-1"
+              >
+                <ArrowLeft size={16} />
+                {t("offers.title")}
+              </Link>
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-primary-foreground max-w-3xl">
+                {post.title[language as keyof typeof post.title]}
+              </h1>
+            </RevealSection>
           </div>
         </div>
       </section>
@@ -116,71 +121,86 @@ const OfferDetail = () => {
         <div className="container-custom">
           <div className="max-w-3xl mx-auto">
             {/* Meta */}
-            <div className="flex flex-wrap items-center gap-4 mb-8 pb-8 border-b border-border">
-              <span className="inline-flex items-center gap-2 text-sm text-accent">
-                <Tag size={14} />
-                {categoryLabels[post.category]}
-              </span>
-              <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-                <Calendar size={14} />
-                {new Date(post.createdAt).toLocaleDateString()}
-              </span>
-            </div>
+            <RevealSection delay={100}>
+              <div className="flex flex-wrap items-center gap-4 mb-8 pb-8 border-b border-border">
+                <span className="inline-flex items-center gap-2 text-sm text-accent">
+                  <Tag size={14} />
+                  {categoryLabels[post.category]}
+                </span>
+                <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                  <Calendar size={14} />
+                  {new Date(post.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+            </RevealSection>
 
             {/* Excerpt */}
-            <p className="text-lg text-muted-foreground mb-8">
-              {post.excerpt[language as keyof typeof post.excerpt]}
-            </p>
+            <RevealSection delay={200}>
+              <p className="text-lg text-muted-foreground mb-8">
+                {post.excerpt[language as keyof typeof post.excerpt]}
+              </p>
+            </RevealSection>
 
             {/* Content */}
-            <div className="prose prose-lg max-w-none">
-              {post.content[language as keyof typeof post.content].split("\n\n").map((paragraph, i) => (
-                <p key={i} className="text-foreground mb-4 whitespace-pre-line">
-                  {paragraph}
-                </p>
-              ))}
-            </div>
+            <RevealSection delay={300}>
+              <div className="prose prose-lg max-w-none">
+                {post.content[language as keyof typeof post.content].split("\n\n").map((paragraph, i) => (
+                  <p key={i} className="text-foreground mb-4 whitespace-pre-line">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </RevealSection>
 
             {/* Gallery */}
             {post.gallery && post.gallery.length > 0 && (
-              <div className="mt-12">
+              <RevealSection delay={400} className="mt-12">
                 <h3 className="text-xl font-heading font-semibold mb-6">Gallery</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div ref={galleryRef as React.RefObject<HTMLDivElement>} className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {post.gallery.map((img, i) => (
-                    <div key={i} className="aspect-square rounded-lg overflow-hidden image-placeholder">
+                    <div
+                      key={i}
+                      className="aspect-square rounded-lg overflow-hidden image-placeholder group transition-all duration-500 ease-out"
+                      style={{
+                        opacity: galleryVisible[i] ? 1 : 0,
+                        transform: galleryVisible[i] ? "scale(1)" : "scale(0.95)",
+                      }}
+                    >
                       <img
                         src={img}
                         alt={`Gallery image ${i + 1}`}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
                     </div>
                   ))}
                 </div>
-              </div>
+              </RevealSection>
             )}
 
             {/* CTA */}
-            <div className="mt-12 p-8 bg-secondary rounded-xl text-center">
-              <h3 className="text-xl font-heading font-semibold mb-4">
-                {t("contact.title")}
-              </h3>
-              <div className="flex flex-wrap justify-center gap-4">
-                <a
-                  href="tel:+995322000000"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-accent-foreground rounded-md font-medium hover:bg-accent/90 transition-colors"
-                >
-                  +995 32 200 00 00
-                </a>
-                <a
-                  href="https://wa.me/995322000000"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 border border-border rounded-md font-medium hover:bg-muted transition-colors"
-                >
-                  WhatsApp
-                </a>
+            <RevealSection delay={500} className="mt-12">
+              <div className="p-8 bg-secondary rounded-xl text-center transition-all duration-300 hover:shadow-lg">
+                <h3 className="text-xl font-heading font-semibold mb-4">
+                  {t("contact.title")}
+                </h3>
+                <div className="flex flex-wrap justify-center gap-4">
+                  <a
+                    href="tel:+995322000000"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-accent-foreground rounded-md font-medium hover:bg-accent/90 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                  >
+                    +995 32 200 00 00
+                  </a>
+                  <a
+                    href="https://wa.me/995322000000"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-6 py-3 border border-border rounded-md font-medium hover:bg-muted transition-all duration-300 hover:scale-105"
+                  >
+                    WhatsApp
+                  </a>
+                </div>
               </div>
-            </div>
+            </RevealSection>
           </div>
         </div>
       </section>
