@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, Facebook, Instagram } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useSiteSettings, getLocalizedSettingsField } from "@/hooks/useSiteSettings";
+import { useSiteSettings, getLocalizedSettingsField, getContentField } from "@/hooks/useSiteSettings";
 
 // TikTok icon component
 const TikTokIcon = ({ size = 20 }: { size?: number }) => (
@@ -17,6 +17,14 @@ export const Footer = () => {
 
   const companyName = getLocalizedSettingsField(settings, "company_name", language) || "Interline Georgia";
   const address = getLocalizedSettingsField(settings, "address", language) || "Tbilisi, Georgia";
+
+  // Get content from site_content with fallback to translation keys
+  const content = settings?.site_content;
+  const tagline = getContentField(content, "footer.tagline", language) || t("hero.subtitle");
+  const quickLinksTitle = getContentField(content, "footer.quickLinksTitle", language) || t("nav.home");
+  const contactTitle = getContentField(content, "footer.contactTitle", language) || t("contact.title");
+  const followUsTitle = getContentField(content, "footer.followUsTitle", language) || t("contact.followUs");
+  const rightsText = getContentField(content, "footer.rightsText", language) || t("footer.rights");
 
   // Get all phones
   const phones = settings?.phones && settings.phones.length > 0 ? settings.phones : (settings?.phone ? [settings.phone] : []);
@@ -42,20 +50,29 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}
           <div>
-            <Link to="/" className="inline-block mb-4">
-              <span className="text-2xl font-heading font-bold">{companyName.split(" ")[0]}</span>
-              <span className="block text-xs uppercase tracking-widest opacity-70">
-                {companyName.split(" ").slice(1).join(" ") || "Georgia"}
-              </span>
+            <Link to="/" className="inline-flex items-center gap-3 mb-4">
+              {settings?.logo_url && (
+                <img 
+                  src={settings.logo_url} 
+                  alt="Logo" 
+                  className="h-8 w-auto object-contain brightness-0 invert" 
+                />
+              )}
+              <div>
+                <span className="text-2xl font-heading font-bold">{companyName.split(" ")[0]}</span>
+                <span className="block text-xs uppercase tracking-widest opacity-70">
+                  {companyName.split(" ").slice(1).join(" ") || "Georgia"}
+                </span>
+              </div>
             </Link>
             <p className="text-sm opacity-80">
-              {t("hero.subtitle")}
+              {tagline}
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-heading font-semibold mb-4">{t("nav.home")}</h4>
+            <h4 className="font-heading font-semibold mb-4">{quickLinksTitle}</h4>
             <nav className="flex flex-col gap-2">
               <Link to="/offers" className="text-sm opacity-80 hover:opacity-100 transition-opacity">
                 {t("nav.offers")}
@@ -74,7 +91,7 @@ export const Footer = () => {
 
           {/* Contact Info */}
           <div>
-            <h4 className="font-heading font-semibold mb-4">{t("contact.title")}</h4>
+            <h4 className="font-heading font-semibold mb-4">{contactTitle}</h4>
             <div className="flex flex-col gap-3">
               {phones.map((phone, idx) => (
                 <a key={idx} href={`tel:${phone.replace(/\s/g, "")}`} className="flex items-center gap-2 text-sm opacity-80 hover:opacity-100 transition-opacity">
@@ -97,7 +114,7 @@ export const Footer = () => {
 
           {/* Social Links */}
           <div>
-            <h4 className="font-heading font-semibold mb-4">{t("contact.followUs")}</h4>
+            <h4 className="font-heading font-semibold mb-4">{followUsTitle}</h4>
             <div className="flex gap-4">
               {socialLinks.length > 0 ? (
                 socialLinks.map((social) => (
@@ -129,7 +146,7 @@ export const Footer = () => {
         {/* Bottom Bar */}
         <div className="mt-12 pt-6 border-t border-primary-foreground/10">
           <p className="text-sm text-center opacity-70">
-            © {currentYear} {companyName}. {t("footer.rights")}.
+            © {currentYear} {companyName}. {rightsText}.
           </p>
         </div>
       </div>
