@@ -14,16 +14,189 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      posts: {
+        Row: {
+          category: string
+          content_en: string
+          content_ka: string
+          content_ru: string
+          cover_image_url: string | null
+          created_at: string
+          created_by: string | null
+          excerpt_en: string
+          excerpt_ka: string
+          excerpt_ru: string
+          gallery: Json | null
+          id: string
+          is_published: boolean
+          slug: string
+          title_en: string
+          title_ka: string
+          title_ru: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          content_en?: string
+          content_ka?: string
+          content_ru?: string
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          excerpt_en?: string
+          excerpt_ka?: string
+          excerpt_ru?: string
+          gallery?: Json | null
+          id?: string
+          is_published?: boolean
+          slug: string
+          title_en?: string
+          title_ka?: string
+          title_ru?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content_en?: string
+          content_ka?: string
+          content_ru?: string
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          excerpt_en?: string
+          excerpt_ka?: string
+          excerpt_ru?: string
+          gallery?: Json | null
+          id?: string
+          is_published?: boolean
+          slug?: string
+          title_en?: string
+          title_ka?: string
+          title_ru?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          address_en: string | null
+          address_ka: string | null
+          address_ru: string | null
+          company_name_en: string
+          company_name_ka: string
+          company_name_ru: string
+          email: string | null
+          facebook_url: string | null
+          id: string
+          instagram_url: string | null
+          map_embed_url: string | null
+          phone: string | null
+          updated_at: string
+          whatsapp: string | null
+          working_hours_en: string | null
+          working_hours_ka: string | null
+          working_hours_ru: string | null
+        }
+        Insert: {
+          address_en?: string | null
+          address_ka?: string | null
+          address_ru?: string | null
+          company_name_en?: string
+          company_name_ka?: string
+          company_name_ru?: string
+          email?: string | null
+          facebook_url?: string | null
+          id?: string
+          instagram_url?: string | null
+          map_embed_url?: string | null
+          phone?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+          working_hours_en?: string | null
+          working_hours_ka?: string | null
+          working_hours_ru?: string | null
+        }
+        Update: {
+          address_en?: string | null
+          address_ka?: string | null
+          address_ru?: string | null
+          company_name_en?: string
+          company_name_ka?: string
+          company_name_ru?: string
+          email?: string | null
+          facebook_url?: string | null
+          id?: string
+          instagram_url?: string | null
+          map_embed_url?: string | null
+          phone?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+          working_hours_en?: string | null
+          working_hours_ka?: string | null
+          working_hours_ru?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "editor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +323,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "editor"],
+    },
   },
 } as const
