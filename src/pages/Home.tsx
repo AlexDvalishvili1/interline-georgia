@@ -1,16 +1,21 @@
 import { Link } from "react-router-dom";
-import { Plane, Ship, Map, Award, Globe, Headphones, Clock } from "lucide-react";
+import { Plane, Ship, Map, Award, Globe, Headphones, Clock, Calendar, ArrowRight, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { RevealSection } from "@/components/animations";
 import { useStaggerReveal } from "@/hooks/useRevealOnScroll";
+import { useLatestOffers, getLocalizedField } from "@/hooks/usePosts";
+import { useSiteSettings, getLocalizedSettingsField } from "@/hooks/useSiteSettings";
 
 const Home = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { containerRef: servicesRef, visibleItems: servicesVisible } = useStaggerReveal(3);
   const { containerRef: whyUsRef, visibleItems: whyUsVisible } = useStaggerReveal(4);
   const { containerRef: offersRef, visibleItems: offersVisible } = useStaggerReveal(3);
+
+  const { data: latestOffers, isLoading: offersLoading } = useLatestOffers(3);
+  const { data: settings } = useSiteSettings();
 
   return (
     <div className="flex flex-col">
@@ -222,34 +227,62 @@ const Home = () => {
             </div>
           </RevealSection>
 
-          {/* Placeholder for dynamic content */}
-          <div ref={offersRef as React.RefObject<HTMLDivElement>} className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[1, 2, 3].map((i, index) => (
-              <div
-                key={i}
-                className="transition-all duration-500 ease-out"
-                style={{
-                  opacity: offersVisible[index] ? 1 : 0,
-                  transform: offersVisible[index] ? "translateY(0)" : "translateY(30px)",
-                }}
-              >
-                <Card className="overflow-hidden hover-lift group cursor-pointer">
-                  <div className="aspect-[16/10] image-placeholder bg-muted overflow-hidden">
-                    <div className="w-full h-full bg-gradient-to-br from-muted to-muted-foreground/10 transition-transform duration-500 group-hover:scale-105" />
-                  </div>
-                  <CardContent className="p-6">
-                    <p className="text-sm text-accent mb-2">Offer</p>
-                    <h3 className="font-heading font-semibold text-lg mb-2">
-                      {t("latestOffers.comingSoon")}
-                    </h3>
-                    <p className="text-muted-foreground text-sm">
-                      Phase 2 will connect this to the database.
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            ))}
-          </div>
+          {offersLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-accent" />
+            </div>
+          ) : latestOffers && latestOffers.length > 0 ? (
+            <div ref={offersRef as React.RefObject<HTMLDivElement>} className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {latestOffers.map((post, index) => (
+                <div
+                  key={post.id}
+                  className="transition-all duration-500 ease-out"
+                  style={{
+                    opacity: offersVisible[index] ? 1 : 0,
+                    transform: offersVisible[index] ? "translateY(0)" : "translateY(30px)",
+                  }}
+                >
+                  <Link to={`/offers/${post.slug}`}>
+                    <Card className="overflow-hidden hover-lift group cursor-pointer h-full">
+                      <div className="aspect-[16/10] overflow-hidden bg-muted">
+                        {post.cover_image_url ? (
+                          <img
+                            src={post.cover_image_url}
+                            alt={getLocalizedField(post, "title", language)}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                            No image
+                          </div>
+                        )}
+                      </div>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-2 text-sm text-accent mb-2">
+                          <Calendar size={14} />
+                          {new Date(post.created_at).toLocaleDateString()}
+                        </div>
+                        <h3 className="font-heading font-semibold text-lg mb-2 line-clamp-2 group-hover:text-accent transition-colors">
+                          {getLocalizedField(post, "title", language)}
+                        </h3>
+                        <p className="text-muted-foreground text-sm line-clamp-2">
+                          {getLocalizedField(post, "excerpt", language)}
+                        </p>
+                        <span className="inline-flex items-center gap-1 text-accent text-sm font-medium mt-3 group/link">
+                          {t("offers.readMore")}
+                          <ArrowRight size={14} className="transition-transform duration-300 group-hover/link:translate-x-1" />
+                        </span>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              {t("offers.noResults")}
+            </div>
+          )}
         </div>
       </section>
 
@@ -263,44 +296,74 @@ const Home = () => {
               </h2>
               
               <div className="space-y-6">
-                <div className="group">
-                  <h4 className="font-semibold mb-1">{t("contact.phone")}</h4>
-                  <a href="tel:+995322000000" className="text-accent hover:underline transition-colors">
-                    +995 32 200 00 00
-                  </a>
-                </div>
-                <div className="group">
-                  <h4 className="font-semibold mb-1">{t("contact.whatsapp")}</h4>
-                  <a href="https://wa.me/995322000000" className="text-accent hover:underline transition-colors">
-                    +995 32 200 00 00
-                  </a>
-                </div>
-                <div className="group">
-                  <h4 className="font-semibold mb-1">{t("contact.email")}</h4>
-                  <a href="mailto:info@interline.ge" className="text-accent hover:underline transition-colors">
-                    info@interline.ge
-                  </a>
-                </div>
+                {/* All Phones */}
+                {settings?.phones && settings.phones.length > 0 && (
+                  <div className="group">
+                    <h4 className="font-semibold mb-1">{t("contact.phone")}</h4>
+                    <div className="flex flex-col gap-1">
+                      {settings.phones.map((phone, idx) => (
+                        <a key={idx} href={`tel:${phone.replace(/\s/g, "")}`} className="text-accent hover:underline transition-colors">
+                          {phone}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {settings?.whatsapp && (
+                  <div className="group">
+                    <h4 className="font-semibold mb-1">{t("contact.whatsapp")}</h4>
+                    <a href={`https://wa.me/${settings.whatsapp.replace(/[^0-9]/g, "")}`} className="text-accent hover:underline transition-colors">
+                      {settings.whatsapp}
+                    </a>
+                  </div>
+                )}
+                {settings?.emails && settings.emails.length > 0 && (
+                  <div className="group">
+                    <h4 className="font-semibold mb-1">{t("contact.email")}</h4>
+                    <div className="flex flex-col gap-1">
+                      {settings.emails.map((email, idx) => (
+                        <a key={idx} href={`mailto:${email}`} className="text-accent hover:underline transition-colors">
+                          {email}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div>
                   <h4 className="font-semibold mb-1">{t("contact.address")}</h4>
-                  <p className="text-muted-foreground">Tbilisi, Georgia</p>
+                  <p className="text-muted-foreground">
+                    {getLocalizedSettingsField(settings, "address", language) || "Tbilisi, Georgia"}
+                  </p>
                 </div>
                 <div>
                   <h4 className="font-semibold mb-1">{t("contact.workingHours")}</h4>
                   <p className="text-muted-foreground flex items-center gap-2">
                     <Clock size={16} />
-                    Mon - Fri: 10:00 - 19:00
+                    {getLocalizedSettingsField(settings, "working_hours", language) || "Mon - Fri: 10:00 - 19:00"}
                   </p>
                 </div>
               </div>
             </RevealSection>
 
-            {/* Map Placeholder */}
+            {/* Map */}
             <RevealSection direction="right" delay={200}>
-              <div className="aspect-[4/3] lg:aspect-auto rounded-lg overflow-hidden image-placeholder bg-muted min-h-[300px]">
-                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                  Map will be embedded here
-                </div>
+              <div className="aspect-[4/3] lg:aspect-auto rounded-lg overflow-hidden bg-muted min-h-[300px]">
+                {settings?.map_embed_url ? (
+                  <iframe
+                    src={settings.map_embed_url}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Office Location"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                    Map will be embedded here
+                  </div>
+                )}
               </div>
             </RevealSection>
           </div>

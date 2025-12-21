@@ -1,70 +1,31 @@
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Calendar, Tag } from "lucide-react";
+import { ArrowLeft, Calendar, Tag, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { RevealSection } from "@/components/animations";
 import { useStaggerReveal } from "@/hooks/useRevealOnScroll";
-
-// Same placeholder data - will be replaced with database query in Phase 2
-const placeholderPosts = [
-  {
-    id: "1",
-    slug: "summer-cruise-mediterranean",
-    category: "offer",
-    title: {
-      ka: "ხმელთაშუა ზღვის საზაფხულო კრუიზი",
-      ru: "Летний круиз по Средиземному морю",
-      en: "Summer Mediterranean Cruise",
-    },
-    excerpt: {
-      ka: "აღმოაჩინეთ ხმელთაშუა ზღვის ულამაზესი კუნძულები და ნავსადგურები ჩვენი ექსკლუზიური კრუიზით.",
-      ru: "Откройте для себя красивейшие острова и порты Средиземного моря в нашем эксклюзивном круизе.",
-      en: "Discover the most beautiful islands and ports of the Mediterranean with our exclusive cruise.",
-    },
-    content: {
-      ka: "ჩვენი ხმელთაშუა ზღვის კრუიზი გთავაზობთ დაუვიწყარ მოგზაურობას ევროპის ყველაზე ლამაზ სანაპიროებზე. თქვენ მოინახულებთ იტალიას, საბერძნეთს, ესპანეთს და საფრანგეთს. კრუიზი მოიცავს ყველა კვებას, გართობას და ექსკურსიებს.\n\nმარშრუტი: ბარსელონა → მარსელი → რომი → ათენი → სანტორინი → ვენეცია\n\nრა შედის:\n- 7 ღამე ლუქს გემზე\n- ყველა კვება\n- ექსკურსიები ყველა პორტში\n- გართობა და ღონისძიებები\n- ტრანსფერი\n\nდაჯავშნეთ ახლავე და მიიღეთ სპეციალური ფასი!",
-      ru: "Наш средиземноморский круиз предлагает незабываемое путешествие по самым красивым побережьям Европы. Вы посетите Италию, Грецию, Испанию и Францию. Круиз включает все питание, развлечения и экскурсии.\n\nМаршрут: Барселона → Марсель → Рим → Афины → Санторини → Венеция\n\nЧто включено:\n- 7 ночей на люкс-лайнере\n- Все питание\n- Экскурсии во всех портах\n- Развлечения и мероприятия\n- Трансфер\n\nЗабронируйте сейчас и получите специальную цену!",
-      en: "Our Mediterranean cruise offers an unforgettable journey along the most beautiful coastlines of Europe. You will visit Italy, Greece, Spain, and France. The cruise includes all meals, entertainment, and excursions.\n\nRoute: Barcelona → Marseille → Rome → Athens → Santorini → Venice\n\nWhat's included:\n- 7 nights on a luxury liner\n- All meals\n- Excursions at all ports\n- Entertainment and events\n- Transfer\n\nBook now and get a special price!",
-    },
-    createdAt: "2024-12-15",
-    coverImageUrl: "https://images.unsplash.com/photo-1548574505-5e239809ee19?w=1200&q=80",
-    gallery: [
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=80",
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80",
-      "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=600&q=80",
-    ],
-  },
-  {
-    id: "2",
-    slug: "dubai-tour-package",
-    category: "offer",
-    title: {
-      ka: "დუბაის ტურ-პაკეტი",
-      ru: "Турпакет в Дубай",
-      en: "Dubai Tour Package",
-    },
-    excerpt: {
-      ka: "5 ღამე დუბაიში ყველაფრის ჩათვლით - სასტუმრო, ტრანსფერი, ექსკურსიები.",
-      ru: "5 ночей в Дубае с полным пакетом - отель, трансфер, экскурсии.",
-      en: "5 nights in Dubai all-inclusive - hotel, transfer, excursions.",
-    },
-    content: {
-      ka: "დუბაი - თანამედროვე არქიტექტურის, ლუქსის და ტრადიციების უნიკალური შერწყმა. ჩვენი ტურ-პაკეტი გაძლევთ საშუალებას აღმოაჩინოთ ეს საოცარი ქალაქი კომფორტულად.\n\nპროგრამა მოიცავს:\n- ბურჯ ხალიფას დათვალიერება\n- უდაბნოს საფარი\n- დუბაი მოლი და აკვარიუმი\n- ძველი დუბაის ტური\n- ნავით გასეირნება\n\n5 ღამე 4* სასტუმროში საუზმით და ყველა ტრანსფერით.",
-      ru: "Дубай - уникальное сочетание современной архитектуры, роскоши и традиций. Наш турпакет позволяет комфортно открыть для себя этот удивительный город.\n\nПрограмма включает:\n- Посещение Бурдж-Халифа\n- Сафари по пустыне\n- Дубай Молл и аквариум\n- Тур по старому Дубаю\n- Прогулка на лодке\n\n5 ночей в 4* отеле с завтраком и всеми трансферами.",
-      en: "Dubai - a unique blend of modern architecture, luxury, and traditions. Our tour package allows you to discover this amazing city in comfort.\n\nProgram includes:\n- Burj Khalifa visit\n- Desert safari\n- Dubai Mall and Aquarium\n- Old Dubai tour\n- Boat cruise\n\n5 nights in a 4* hotel with breakfast and all transfers.",
-    },
-    createdAt: "2024-12-10",
-    coverImageUrl: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80",
-    gallery: [],
-  },
-];
+import { usePost, getLocalizedField } from "@/hooks/usePosts";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { ImageLightbox } from "@/components/ui/image-lightbox";
 
 const OfferDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const { t, language } = useLanguage();
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
-  const post = placeholderPosts.find((p) => p.slug === slug);
+  const { data: post, isLoading } = usePost(slug);
+  const { data: settings } = useSiteSettings();
   const { containerRef: galleryRef, visibleItems: galleryVisible } = useStaggerReveal(post?.gallery?.length || 0);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      </div>
+    );
+  }
 
   if (!post) {
     return (
@@ -86,16 +47,31 @@ const OfferDetail = () => {
     news: t("offers.tabs.news"),
   };
 
+  const openLightbox = (index: number) => {
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
+
+  // Get contact info from settings
+  const phone = settings?.phones?.[0] || settings?.phone || "";
+  const whatsapp = settings?.whatsapp || phone;
+
   return (
     <div className="flex flex-col">
       {/* Hero Image */}
       <section className="relative h-[50vh] min-h-[400px] overflow-hidden">
-        <div className="absolute inset-0 image-placeholder">
-          <img
-            src={post.coverImageUrl}
-            alt={post.title[language as keyof typeof post.title]}
-            className="w-full h-full object-cover"
-          />
+        <div className="absolute inset-0 bg-muted">
+          {post.cover_image_url ? (
+            <img
+              src={post.cover_image_url}
+              alt={getLocalizedField(post, "title", language)}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+              No cover image
+            </div>
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent" />
         </div>
         <div className="absolute inset-0 flex items-end">
@@ -109,7 +85,7 @@ const OfferDetail = () => {
                 {t("offers.title")}
               </Link>
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-primary-foreground max-w-3xl">
-                {post.title[language as keyof typeof post.title]}
+                {getLocalizedField(post, "title", language)}
               </h1>
             </RevealSection>
           </div>
@@ -125,11 +101,11 @@ const OfferDetail = () => {
               <div className="flex flex-wrap items-center gap-4 mb-8 pb-8 border-b border-border">
                 <span className="inline-flex items-center gap-2 text-sm text-accent">
                   <Tag size={14} />
-                  {categoryLabels[post.category]}
+                  {categoryLabels[post.category] || post.category}
                 </span>
                 <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar size={14} />
-                  {new Date(post.createdAt).toLocaleDateString()}
+                  {new Date(post.created_at).toLocaleDateString()}
                 </span>
               </div>
             </RevealSection>
@@ -137,14 +113,14 @@ const OfferDetail = () => {
             {/* Excerpt */}
             <RevealSection delay={200}>
               <p className="text-lg text-muted-foreground mb-8">
-                {post.excerpt[language as keyof typeof post.excerpt]}
+                {getLocalizedField(post, "excerpt", language)}
               </p>
             </RevealSection>
 
             {/* Content */}
             <RevealSection delay={300}>
               <div className="prose prose-lg max-w-none">
-                {post.content[language as keyof typeof post.content].split("\n\n").map((paragraph, i) => (
+                {getLocalizedField(post, "content", language).split("\n\n").map((paragraph, i) => (
                   <p key={i} className="text-foreground mb-4 whitespace-pre-line">
                     {paragraph}
                   </p>
@@ -156,11 +132,12 @@ const OfferDetail = () => {
             {post.gallery && post.gallery.length > 0 && (
               <RevealSection delay={400} className="mt-12">
                 <h3 className="text-xl font-heading font-semibold mb-6">Gallery</h3>
-                <div ref={galleryRef as React.RefObject<HTMLDivElement>} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div ref={galleryRef as React.RefObject<HTMLDivElement>} className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {post.gallery.map((img, i) => (
-                    <div
+                    <button
                       key={i}
-                      className="aspect-square rounded-lg overflow-hidden image-placeholder group transition-all duration-500 ease-out"
+                      onClick={() => openLightbox(i)}
+                      className="aspect-square rounded-lg overflow-hidden bg-muted group transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-accent"
                       style={{
                         opacity: galleryVisible[i] ? 1 : 0,
                         transform: galleryVisible[i] ? "scale(1)" : "scale(0.95)",
@@ -171,7 +148,7 @@ const OfferDetail = () => {
                         alt={`Gallery image ${i + 1}`}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
-                    </div>
+                    </button>
                   ))}
                 </div>
               </RevealSection>
@@ -184,26 +161,38 @@ const OfferDetail = () => {
                   {t("contact.title")}
                 </h3>
                 <div className="flex flex-wrap justify-center gap-4">
-                  <a
-                    href="tel:+995322000000"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-accent-foreground rounded-md font-medium hover:bg-accent/90 transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                  >
-                    +995 32 200 00 00
-                  </a>
-                  <a
-                    href="https://wa.me/995322000000"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-3 border border-border rounded-md font-medium hover:bg-muted transition-all duration-300 hover:scale-105"
-                  >
-                    WhatsApp
-                  </a>
+                  {phone && (
+                    <a
+                      href={`tel:${phone.replace(/\s/g, "")}`}
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-accent-foreground rounded-md font-medium hover:bg-accent/90 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                    >
+                      {phone}
+                    </a>
+                  )}
+                  {whatsapp && (
+                    <a
+                      href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-6 py-3 border border-border rounded-md font-medium hover:bg-muted transition-all duration-300 hover:scale-105"
+                    >
+                      WhatsApp
+                    </a>
+                  )}
                 </div>
               </div>
             </RevealSection>
           </div>
         </div>
       </section>
+
+      {/* Lightbox */}
+      <ImageLightbox
+        images={post.gallery || []}
+        initialIndex={lightboxIndex}
+        open={lightboxOpen}
+        onOpenChange={setLightboxOpen}
+      />
     </div>
   );
 };
