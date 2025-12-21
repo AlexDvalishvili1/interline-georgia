@@ -23,13 +23,17 @@ export type Database = {
           cover_image_url: string | null
           created_at: string
           created_by: string | null
+          display_locations: string[] | null
           excerpt_en: string
           excerpt_ka: string
           excerpt_ru: string
+          featured: boolean | null
           gallery: Json | null
           id: string
           is_published: boolean
+          pinned: boolean | null
           slug: string
+          sort_order: number | null
           title_en: string
           title_ka: string
           title_ru: string
@@ -43,13 +47,17 @@ export type Database = {
           cover_image_url?: string | null
           created_at?: string
           created_by?: string | null
+          display_locations?: string[] | null
           excerpt_en?: string
           excerpt_ka?: string
           excerpt_ru?: string
+          featured?: boolean | null
           gallery?: Json | null
           id?: string
           is_published?: boolean
+          pinned?: boolean | null
           slug: string
+          sort_order?: number | null
           title_en?: string
           title_ka?: string
           title_ru?: string
@@ -63,13 +71,17 @@ export type Database = {
           cover_image_url?: string | null
           created_at?: string
           created_by?: string | null
+          display_locations?: string[] | null
           excerpt_en?: string
           excerpt_ka?: string
           excerpt_ru?: string
+          featured?: boolean | null
           gallery?: Json | null
           id?: string
           is_published?: boolean
+          pinned?: boolean | null
           slug?: string
+          sort_order?: number | null
           title_en?: string
           title_ka?: string
           title_ru?: string
@@ -110,16 +122,20 @@ export type Database = {
           company_name_ka: string
           company_name_ru: string
           email: string | null
+          emails: string[] | null
           facebook_url: string | null
           id: string
           instagram_url: string | null
           map_embed_url: string | null
           phone: string | null
+          phones: string[] | null
+          tiktok_url: string | null
           updated_at: string
           whatsapp: string | null
           working_hours_en: string | null
           working_hours_ka: string | null
           working_hours_ru: string | null
+          youtube_url: string | null
         }
         Insert: {
           address_en?: string | null
@@ -129,16 +145,20 @@ export type Database = {
           company_name_ka?: string
           company_name_ru?: string
           email?: string | null
+          emails?: string[] | null
           facebook_url?: string | null
           id?: string
           instagram_url?: string | null
           map_embed_url?: string | null
           phone?: string | null
+          phones?: string[] | null
+          tiktok_url?: string | null
           updated_at?: string
           whatsapp?: string | null
           working_hours_en?: string | null
           working_hours_ka?: string | null
           working_hours_ru?: string | null
+          youtube_url?: string | null
         }
         Update: {
           address_en?: string | null
@@ -148,16 +168,20 @@ export type Database = {
           company_name_ka?: string
           company_name_ru?: string
           email?: string | null
+          emails?: string[] | null
           facebook_url?: string | null
           id?: string
           instagram_url?: string | null
           map_embed_url?: string | null
           phone?: string | null
+          phones?: string[] | null
+          tiktok_url?: string | null
           updated_at?: string
           whatsapp?: string | null
           working_hours_en?: string | null
           working_hours_ka?: string | null
           working_hours_ru?: string | null
+          youtube_url?: string | null
         }
         Relationships: []
       }

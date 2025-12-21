@@ -1,134 +1,31 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, Calendar, ArrowRight } from "lucide-react";
+import { Search, Calendar, ArrowRight, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RevealSection } from "@/components/animations";
 import { useStaggerReveal } from "@/hooks/useRevealOnScroll";
-
-// Placeholder data - will be replaced with database in Phase 2
-const placeholderPosts = [
-  {
-    id: "1",
-    slug: "summer-cruise-mediterranean",
-    category: "offer",
-    title: {
-      ka: "ხმელთაშუა ზღვის საზაფხულო კრუიზი",
-      ru: "Летний круиз по Средиземному морю",
-      en: "Summer Mediterranean Cruise",
-    },
-    excerpt: {
-      ka: "აღმოაჩინეთ ხმელთაშუა ზღვის ულამაზესი კუნძულები და ნავსადგურები ჩვენი ექსკლუზიური კრუიზით.",
-      ru: "Откройте для себя красивейшие острова и порты Средиземного моря в нашем эксклюзивном круизе.",
-      en: "Discover the most beautiful islands and ports of the Mediterranean with our exclusive cruise.",
-    },
-    createdAt: "2024-12-15",
-    coverImageUrl: "https://images.unsplash.com/photo-1548574505-5e239809ee19?w=600&q=80",
-  },
-  {
-    id: "2",
-    slug: "dubai-tour-package",
-    category: "offer",
-    title: {
-      ka: "დუბაის ტურ-პაკეტი",
-      ru: "Турпакет в Дубай",
-      en: "Dubai Tour Package",
-    },
-    excerpt: {
-      ka: "5 ღამე დუბაიში ყველაფრის ჩათვლით - სასტუმრო, ტრანსფერი, ექსკურსიები.",
-      ru: "5 ночей в Дубае с полным пакетом - отель, трансфер, экскурсии.",
-      en: "5 nights in Dubai all-inclusive - hotel, transfer, excursions.",
-    },
-    createdAt: "2024-12-10",
-    coverImageUrl: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&q=80",
-  },
-  {
-    id: "3",
-    slug: "early-booking-discount",
-    category: "promotion",
-    title: {
-      ka: "ადრეული დაჯავშნის ფასდაკლება",
-      ru: "Скидка за раннее бронирование",
-      en: "Early Booking Discount",
-    },
-    excerpt: {
-      ka: "დაჯავშნეთ 2025 წლის ზაფხულის ტური ახლავე და მიიღეთ 15% ფასდაკლება!",
-      ru: "Забронируйте летний тур 2025 сейчас и получите скидку 15%!",
-      en: "Book your Summer 2025 tour now and get 15% discount!",
-    },
-    createdAt: "2024-12-08",
-    coverImageUrl: "https://images.unsplash.com/photo-1488085061387-422e29b40080?w=600&q=80",
-  },
-  {
-    id: "4",
-    slug: "group-travel-special",
-    category: "promotion",
-    title: {
-      ka: "ჯგუფური მოგზაურობის სპეციალური შეთავაზება",
-      ru: "Специальное предложение для групп",
-      en: "Group Travel Special Offer",
-    },
-    excerpt: {
-      ka: "10+ ადამიანის ჯგუფისთვის განსაკუთრებული ფასები და პირობები.",
-      ru: "Особые цены и условия для групп от 10 человек.",
-      en: "Special prices and conditions for groups of 10+ people.",
-    },
-    createdAt: "2024-12-05",
-    coverImageUrl: "https://images.unsplash.com/photo-1539635278303-d4002c07eae3?w=600&q=80",
-  },
-  {
-    id: "5",
-    slug: "new-cruise-destinations-2025",
-    category: "news",
-    title: {
-      ka: "ახალი კრუიზის მიმართულებები 2025",
-      ru: "Новые направления круизов 2025",
-      en: "New Cruise Destinations 2025",
-    },
-    excerpt: {
-      ka: "გაეცანით ჩვენს ახალ კრუიზულ მარშრუტებს 2025 წლისთვის.",
-      ru: "Ознакомьтесь с нашими новыми круизными маршрутами на 2025 год.",
-      en: "Check out our new cruise routes for 2025.",
-    },
-    createdAt: "2024-12-01",
-    coverImageUrl: "https://images.unsplash.com/photo-1599640842225-85d111c60e6b?w=600&q=80",
-  },
-  {
-    id: "6",
-    slug: "partner-airlines-expansion",
-    category: "news",
-    title: {
-      ka: "პარტნიორი ავიაკომპანიების გაფართოება",
-      ru: "Расширение партнерских авиакомпаний",
-      en: "Partner Airlines Expansion",
-    },
-    excerpt: {
-      ka: "ჩვენ დავამატეთ 5 ახალი ავიაკომპანია ჩვენს პარტნიორთა ქსელში.",
-      ru: "Мы добавили 5 новых авиакомпаний в нашу партнерскую сеть.",
-      en: "We added 5 new airlines to our partner network.",
-    },
-    createdAt: "2024-11-28",
-    coverImageUrl: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&q=80",
-  },
-];
+import { usePosts, getLocalizedField, type Post } from "@/hooks/usePosts";
 
 const Offers = () => {
   const { t, language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("offers");
 
-  const filteredPosts = placeholderPosts.filter((post) => {
-    const matchesCategory =
-      (activeTab === "offers" && post.category === "offer") ||
-      (activeTab === "promotions" && post.category === "promotion") ||
-      (activeTab === "news" && post.category === "news");
+  // Map tab to category
+  const categoryMap: Record<string, string> = {
+    offers: "offer",
+    promotions: "promotion",
+    news: "news",
+  };
 
-    const title = post.title[language as keyof typeof post.title];
-    const matchesSearch = title.toLowerCase().includes(searchQuery.toLowerCase());
-
-    return matchesCategory && matchesSearch;
+  const { data: posts, isLoading } = usePosts({
+    displayLocation: "offers_page",
+    category: categoryMap[activeTab],
+    search: searchQuery,
+    language,
   });
 
   return (
@@ -175,13 +72,13 @@ const Offers = () => {
               </div>
 
               <TabsContent value="offers" className="mt-0">
-                <PostGrid posts={filteredPosts} language={language} t={t} />
+                <PostGrid posts={posts} language={language} t={t} isLoading={isLoading} />
               </TabsContent>
               <TabsContent value="promotions" className="mt-0">
-                <PostGrid posts={filteredPosts} language={language} t={t} />
+                <PostGrid posts={posts} language={language} t={t} isLoading={isLoading} />
               </TabsContent>
               <TabsContent value="news" className="mt-0">
-                <PostGrid posts={filteredPosts} language={language} t={t} />
+                <PostGrid posts={posts} language={language} t={t} isLoading={isLoading} />
               </TabsContent>
             </Tabs>
           </RevealSection>
@@ -192,15 +89,24 @@ const Offers = () => {
 };
 
 interface PostGridProps {
-  posts: typeof placeholderPosts;
+  posts: Post[] | undefined;
   language: string;
   t: (key: string) => string;
+  isLoading: boolean;
 }
 
-const PostGrid = ({ posts, language, t }: PostGridProps) => {
-  const { containerRef, visibleItems } = useStaggerReveal(posts.length);
+const PostGrid = ({ posts, language, t, isLoading }: PostGridProps) => {
+  const { containerRef, visibleItems } = useStaggerReveal(posts?.length || 0);
 
-  if (posts.length === 0) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      </div>
+    );
+  }
+
+  if (!posts || posts.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
         {t("offers.noResults")}
@@ -221,23 +127,29 @@ const PostGrid = ({ posts, language, t }: PostGridProps) => {
         >
           <Link to={`/offers/${post.slug}`}>
             <Card className="overflow-hidden hover-lift h-full group">
-              <div className="aspect-[16/10] image-placeholder overflow-hidden">
-                <img
-                  src={post.coverImageUrl}
-                  alt={post.title[language as keyof typeof post.title]}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
+              <div className="aspect-[16/10] overflow-hidden bg-muted">
+                {post.cover_image_url ? (
+                  <img
+                    src={post.cover_image_url}
+                    alt={getLocalizedField(post, "title", language)}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                    No image
+                  </div>
+                )}
               </div>
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 text-sm text-accent mb-2">
                   <Calendar size={14} />
-                  {new Date(post.createdAt).toLocaleDateString()}
+                  {new Date(post.created_at).toLocaleDateString()}
                 </div>
                 <h3 className="font-heading font-semibold text-lg mb-2 line-clamp-2 group-hover:text-accent transition-colors">
-                  {post.title[language as keyof typeof post.title]}
+                  {getLocalizedField(post, "title", language)}
                 </h3>
                 <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
-                  {post.excerpt[language as keyof typeof post.excerpt]}
+                  {getLocalizedField(post, "excerpt", language)}
                 </p>
                 <span className="inline-flex items-center gap-1 text-accent text-sm font-medium group/link">
                   {t("offers.readMore")}

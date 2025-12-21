@@ -1,45 +1,100 @@
-import { Phone, Mail, MapPin, Clock, MessageCircle, Facebook, Instagram } from "lucide-react";
+import { Phone, Mail, MapPin, Clock, MessageCircle, Facebook, Instagram, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { RevealSection } from "@/components/animations";
 import { useStaggerReveal } from "@/hooks/useRevealOnScroll";
+import { useSiteSettings, getLocalizedSettingsField } from "@/hooks/useSiteSettings";
+
+// TikTok icon component
+const TikTokIcon = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z" />
+  </svg>
+);
 
 const Contacts = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { data: settings, isLoading } = useSiteSettings();
   const { containerRef: cardsRef, visibleItems: cardsVisible } = useStaggerReveal(6);
 
-  const contactInfo = [
-    {
+  if (isLoading) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      </div>
+    );
+  }
+
+  // Build contact info from settings
+  const contactInfo = [];
+
+  // Phones
+  if (settings?.phones && settings.phones.length > 0) {
+    contactInfo.push({
       icon: Phone,
       titleKey: "contact.phone",
-      value: "+995 32 200 00 00",
-      href: "tel:+995322000000",
-    },
-    {
+      values: settings.phones,
+      hrefPrefix: "tel:",
+      formatHref: (v: string) => v.replace(/\s/g, ""),
+    });
+  }
+
+  // WhatsApp
+  if (settings?.whatsapp) {
+    contactInfo.push({
       icon: MessageCircle,
       titleKey: "contact.whatsapp",
-      value: "+995 32 200 00 00",
-      href: "https://wa.me/995322000000",
-    },
-    {
+      values: [settings.whatsapp],
+      hrefPrefix: "https://wa.me/",
+      formatHref: (v: string) => v.replace(/[^0-9]/g, ""),
+      external: true,
+    });
+  }
+
+  // Emails
+  if (settings?.emails && settings.emails.length > 0) {
+    contactInfo.push({
       icon: Mail,
       titleKey: "contact.email",
-      value: "info@interline.ge",
-      href: "mailto:info@interline.ge",
-    },
-    {
+      values: settings.emails,
+      hrefPrefix: "mailto:",
+      formatHref: (v: string) => v,
+    });
+  }
+
+  // Address
+  const address = getLocalizedSettingsField(settings, "address", language);
+  if (address) {
+    contactInfo.push({
       icon: MapPin,
       titleKey: "contact.address",
-      value: "Tbilisi, Georgia",
-      href: null,
-    },
-    {
+      values: [address],
+      hrefPrefix: null,
+    });
+  }
+
+  // Working Hours
+  const workingHours = getLocalizedSettingsField(settings, "working_hours", language);
+  if (workingHours) {
+    contactInfo.push({
       icon: Clock,
       titleKey: "contact.workingHours",
-      value: "Mon - Fri: 10:00 - 19:00",
-      href: null,
-    },
-  ];
+      values: [workingHours],
+      hrefPrefix: null,
+    });
+  }
+
+  // Social links
+  const socialLinks = [];
+  if (settings?.facebook_url) {
+    socialLinks.push({ icon: Facebook, url: settings.facebook_url, label: "Facebook" });
+  }
+  if (settings?.instagram_url) {
+    socialLinks.push({ icon: Instagram, url: settings.instagram_url, label: "Instagram" });
+  }
+  if (settings?.tiktok_url) {
+    socialLinks.push({ icon: TikTokIcon, url: settings.tiktok_url, label: "TikTok" });
+  }
 
   return (
     <div className="flex flex-col">
@@ -83,18 +138,23 @@ const Contacts = () => {
                         </div>
                         <div>
                           <h3 className="font-semibold mb-1">{t(item.titleKey)}</h3>
-                          {item.href ? (
-                            <a
-                              href={item.href}
-                              className="text-accent hover:underline transition-colors"
-                              target={item.href.startsWith("http") ? "_blank" : undefined}
-                              rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                            >
-                              {item.value}
-                            </a>
-                          ) : (
-                            <p className="text-muted-foreground">{item.value}</p>
-                          )}
+                          <div className="flex flex-col gap-1">
+                            {item.values.map((value: string, idx: number) =>
+                              item.hrefPrefix ? (
+                                <a
+                                  key={idx}
+                                  href={`${item.hrefPrefix}${item.formatHref ? item.formatHref(value) : value}`}
+                                  className="text-accent hover:underline transition-colors"
+                                  target={item.external ? "_blank" : undefined}
+                                  rel={item.external ? "noopener noreferrer" : undefined}
+                                >
+                                  {value}
+                                </a>
+                              ) : (
+                                <p key={idx} className="text-muted-foreground">{value}</p>
+                              )
+                            )}
+                          </div>
                         </div>
                       </div>
                     </CardContent>
@@ -103,61 +163,59 @@ const Contacts = () => {
               ))}
 
               {/* Social Links */}
-              <div
-                className="transition-all duration-500 ease-out"
-                style={{
-                  opacity: cardsVisible[5] ? 1 : 0,
-                  transform: cardsVisible[5] ? "translateX(0)" : "translateX(-30px)",
-                }}
-              >
-                <Card className="group">
-                  <CardContent className="p-6">
-                    <h3 className="font-semibold mb-4">{t("contact.followUs")}</h3>
-                    <div className="flex gap-4">
-                      <a
-                        href="https://facebook.com/interlinegeo"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-all duration-300 hover:scale-110 hover:shadow-lg"
-                        aria-label="Facebook"
-                      >
-                        <Facebook size={24} />
-                      </a>
-                      <a
-                        href="https://instagram.com/interlinegeo"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-all duration-300 hover:scale-110 hover:shadow-lg"
-                        aria-label="Instagram"
-                      >
-                        <Instagram size={24} />
-                      </a>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              {socialLinks.length > 0 && (
+                <div
+                  className="transition-all duration-500 ease-out"
+                  style={{
+                    opacity: cardsVisible[contactInfo.length] ? 1 : 0,
+                    transform: cardsVisible[contactInfo.length] ? "translateX(0)" : "translateX(-30px)",
+                  }}
+                >
+                  <Card className="group">
+                    <CardContent className="p-6">
+                      <h3 className="font-semibold mb-4">{t("contact.followUs")}</h3>
+                      <div className="flex gap-4">
+                        {socialLinks.map((social) => (
+                          <a
+                            key={social.label}
+                            href={social.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-all duration-300 hover:scale-110 hover:shadow-lg"
+                            aria-label={social.label}
+                          >
+                            <social.icon size={24} />
+                          </a>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </div>
 
             {/* Map */}
             <RevealSection direction="right" delay={200}>
               <div className="space-y-4">
                 <h3 className="text-xl font-heading font-semibold">{t("contact.address")}</h3>
-                <div className="aspect-[4/3] rounded-xl overflow-hidden image-placeholder bg-muted">
-                  {/* Google Maps Embed Placeholder */}
-                  <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d95257.67069407399!2d44.71691775!3d41.7151377!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x40440cd7e64f626b%3A0x61d084ede2576ea3!2sTbilisi%2C%20Georgia!5e0!3m2!1sen!2sus!4v1234567890"
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    allowFullScreen
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    title="Interline Georgia Location"
-                  />
+                <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted">
+                  {settings?.map_embed_url ? (
+                    <iframe
+                      src={settings.map_embed_url}
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      allowFullScreen
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      title="Office Location"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                      Map will be embedded after adding in settings
+                    </div>
+                  )}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Replace with actual office address map embed
-                </p>
               </div>
             </RevealSection>
           </div>
