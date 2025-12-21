@@ -5,6 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useSiteSettings, getLocalizedSettingsField } from "@/hooks/useSiteSettings";
 import { cn } from "@/lib/utils";
+import logoSvg from "@/assets/logo.svg";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,6 +14,7 @@ export const Header = () => {
   const location = useLocation();
 
   const companyName = getLocalizedSettingsField(settings, "company_name", language) || "Interline Georgia";
+  const logoUrl = settings?.logo_url || logoSvg;
 
   const navLinks = [
     { href: "/", label: t("nav.home") },
@@ -33,13 +35,11 @@ export const Header = () => {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
-            {settings?.logo_url && (
-              <img 
-                src={settings.logo_url} 
-                alt="Logo" 
-                className="h-8 md:h-10 w-auto object-contain" 
-              />
-            )}
+            <img 
+              src={logoUrl} 
+              alt="Logo" 
+              className="h-8 md:h-10 w-auto object-contain" 
+            />
             <div className="flex items-center gap-2">
               <span className="text-2xl font-heading font-bold text-primary">
                 {companyName.split(" ")[0] || "Interline"}
