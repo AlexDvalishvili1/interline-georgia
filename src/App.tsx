@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Layout } from "@/components/layout/Layout";
@@ -37,7 +37,8 @@ const App = () => (
               <Route path="/services" element={<Layout><Services /></Layout>} />
               <Route path="/about" element={<Layout><About /></Layout>} />
               <Route path="/contacts" element={<Layout><Contacts /></Layout>} />
-              <Route path="/auth" element={<Auth />} />
+              <Route path="/admin/auth" element={<Auth />} />
+              <Route path="/auth" element={<Navigate to="/admin/auth" replace />} />
               <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
               <Route path="/admin/posts" element={<AdminLayout><AdminPosts /></AdminLayout>} />
               <Route path="/admin/posts/:id" element={<AdminLayout><PostEditor /></AdminLayout>} />
