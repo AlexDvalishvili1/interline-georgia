@@ -126,9 +126,11 @@ export type Database = {
           facebook_url: string | null
           id: string
           instagram_url: string | null
+          logo_url: string | null
           map_embed_url: string | null
           phone: string | null
           phones: string[] | null
+          site_content: Json | null
           tiktok_url: string | null
           updated_at: string
           whatsapp: string | null
@@ -149,9 +151,11 @@ export type Database = {
           facebook_url?: string | null
           id?: string
           instagram_url?: string | null
+          logo_url?: string | null
           map_embed_url?: string | null
           phone?: string | null
           phones?: string[] | null
+          site_content?: Json | null
           tiktok_url?: string | null
           updated_at?: string
           whatsapp?: string | null
@@ -172,9 +176,11 @@ export type Database = {
           facebook_url?: string | null
           id?: string
           instagram_url?: string | null
+          logo_url?: string | null
           map_embed_url?: string | null
           phone?: string | null
           phones?: string[] | null
+          site_content?: Json | null
           tiktok_url?: string | null
           updated_at?: string
           whatsapp?: string | null

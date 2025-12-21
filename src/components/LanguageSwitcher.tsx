@@ -3,10 +3,10 @@ import { useLanguage, Language } from "@/contexts/LanguageContext";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const languages: { code: Language; label: string; flag: string }[] = [
-  { code: "ka", label: "ქართული", flag: "🇬🇪" },
-  { code: "ru", label: "Русский", flag: "🇷🇺" },
-  { code: "en", label: "English", flag: "🇬🇧" },
+const languages: { code: Language; label: string; flag: string; shortCode: string }[] = [
+  { code: "ka", label: "ქართული", flag: "🇬🇪", shortCode: "KA" },
+  { code: "ru", label: "Русский", flag: "🇷🇺", shortCode: "RU" },
+  { code: "en", label: "English", flag: "🇬🇧", shortCode: "EN" },
 ];
 
 export const LanguageSwitcher = () => {

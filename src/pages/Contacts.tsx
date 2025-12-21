@@ -3,7 +3,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { RevealSection } from "@/components/animations";
 import { useStaggerReveal } from "@/hooks/useRevealOnScroll";
-import { useSiteSettings, getLocalizedSettingsField } from "@/hooks/useSiteSettings";
+import { useSiteSettings, getLocalizedSettingsField, getContentField } from "@/hooks/useSiteSettings";
 
 // TikTok icon component
 const TikTokIcon = ({ size = 24 }: { size?: number }) => (
@@ -16,6 +16,18 @@ const Contacts = () => {
   const { t, language } = useLanguage();
   const { data: settings, isLoading } = useSiteSettings();
   const { containerRef: cardsRef, visibleItems: cardsVisible } = useStaggerReveal(6);
+
+  const content = settings?.site_content;
+
+  // Get page content from DB with fallback to translation keys
+  const pageTitle = getContentField(content, "contacts.pageTitle", language) || t("contact.title");
+  const pageSubtitle = getContentField(content, "contacts.pageSubtitle", language) || t("hero.subtitle");
+  const phoneLabel = getContentField(content, "contacts.phoneLabel", language) || t("contact.phone");
+  const whatsappLabel = getContentField(content, "contacts.whatsappLabel", language) || t("contact.whatsapp");
+  const emailLabel = getContentField(content, "contacts.emailLabel", language) || t("contact.email");
+  const addressLabel = getContentField(content, "contacts.addressLabel", language) || t("contact.address");
+  const workingHoursLabel = getContentField(content, "contacts.workingHoursLabel", language) || t("contact.workingHours");
+  const followUsLabel = getContentField(content, "contacts.followUsLabel", language) || t("contact.followUs");
 
   if (isLoading) {
     return (
@@ -32,7 +44,7 @@ const Contacts = () => {
   if (settings?.phones && settings.phones.length > 0) {
     contactInfo.push({
       icon: Phone,
-      titleKey: "contact.phone",
+      title: phoneLabel,
       values: settings.phones,
       hrefPrefix: "tel:",
       formatHref: (v: string) => v.replace(/\s/g, ""),
@@ -43,7 +55,7 @@ const Contacts = () => {
   if (settings?.whatsapp) {
     contactInfo.push({
       icon: MessageCircle,
-      titleKey: "contact.whatsapp",
+      title: whatsappLabel,
       values: [settings.whatsapp],
       hrefPrefix: "https://wa.me/",
       formatHref: (v: string) => v.replace(/[^0-9]/g, ""),
@@ -55,7 +67,7 @@ const Contacts = () => {
   if (settings?.emails && settings.emails.length > 0) {
     contactInfo.push({
       icon: Mail,
-      titleKey: "contact.email",
+      title: emailLabel,
       values: settings.emails,
       hrefPrefix: "mailto:",
       formatHref: (v: string) => v,
@@ -67,7 +79,7 @@ const Contacts = () => {
   if (address) {
     contactInfo.push({
       icon: MapPin,
-      titleKey: "contact.address",
+      title: addressLabel,
       values: [address],
       hrefPrefix: null,
     });
@@ -78,7 +90,7 @@ const Contacts = () => {
   if (workingHours) {
     contactInfo.push({
       icon: Clock,
-      titleKey: "contact.workingHours",
+      title: workingHoursLabel,
       values: [workingHours],
       hrefPrefix: null,
     });
@@ -104,10 +116,10 @@ const Contacts = () => {
           <RevealSection>
             <div className="max-w-2xl">
               <h1 className="text-4xl md:text-5xl font-heading font-bold mb-4">
-                {t("contact.title")}
+                {pageTitle}
               </h1>
               <p className="text-lg opacity-90">
-                {t("hero.subtitle")}
+                {pageSubtitle}
               </p>
             </div>
           </RevealSection>
@@ -123,7 +135,7 @@ const Contacts = () => {
             <div ref={cardsRef as React.RefObject<HTMLDivElement>} className="space-y-6">
               {contactInfo.map((item, index) => (
                 <div
-                  key={item.titleKey}
+                  key={item.title}
                   className="transition-all duration-500 ease-out"
                   style={{
                     opacity: cardsVisible[index] ? 1 : 0,
@@ -137,7 +149,7 @@ const Contacts = () => {
                           <item.icon className="w-6 h-6 text-accent" />
                         </div>
                         <div>
-                          <h3 className="font-semibold mb-1">{t(item.titleKey)}</h3>
+                          <h3 className="font-semibold mb-1">{item.title}</h3>
                           <div className="flex flex-col gap-1">
                             {item.values.map((value: string, idx: number) =>
                               item.hrefPrefix ? (
@@ -173,7 +185,7 @@ const Contacts = () => {
                 >
                   <Card className="group">
                     <CardContent className="p-6">
-                      <h3 className="font-semibold mb-4">{t("contact.followUs")}</h3>
+                      <h3 className="font-semibold mb-4">{followUsLabel}</h3>
                       <div className="flex gap-4">
                         {socialLinks.map((social) => (
                           <a
@@ -197,7 +209,7 @@ const Contacts = () => {
             {/* Map */}
             <RevealSection direction="right" delay={200}>
               <div className="space-y-4">
-                <h3 className="text-xl font-heading font-semibold">{t("contact.address")}</h3>
+                <h3 className="text-xl font-heading font-semibold">{addressLabel}</h3>
                 <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted">
                   {settings?.map_embed_url ? (
                     <iframe

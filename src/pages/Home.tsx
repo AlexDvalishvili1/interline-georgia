@@ -6,36 +6,56 @@ import { Card, CardContent } from "@/components/ui/card";
 import { RevealSection } from "@/components/animations";
 import { useStaggerReveal } from "@/hooks/useRevealOnScroll";
 import { useLatestOffers, getLocalizedField } from "@/hooks/usePosts";
-import { useSiteSettings, getLocalizedSettingsField } from "@/hooks/useSiteSettings";
+import { useSiteSettings, getLocalizedSettingsField, getContentField } from "@/hooks/useSiteSettings";
 
 const Home = () => {
   const { t, language } = useLanguage();
   const { containerRef: servicesRef, visibleItems: servicesVisible } = useStaggerReveal(3);
   const { containerRef: whyUsRef, visibleItems: whyUsVisible } = useStaggerReveal(4);
-  const { containerRef: offersRef, visibleItems: offersVisible } = useStaggerReveal(3);
 
   const { data: latestOffers, isLoading: offersLoading } = useLatestOffers(3);
   const { data: settings } = useSiteSettings();
+
+  // Use stagger reveal for offers only when data is ready
+  const offersReady = !offersLoading && latestOffers && latestOffers.length > 0;
+  const { containerRef: offersRef, visibleItems: offersVisible } = useStaggerReveal(
+    latestOffers?.length || 0,
+    { ready: offersReady }
+  );
+
+  // Get content from site_content with fallback to translation keys
+  const content = settings?.site_content;
+  const heroTitle = getContentField(content, "home.heroTitle", language) || t("hero.title");
+  const heroSubtitle = getContentField(content, "home.heroSubtitle", language) || t("hero.subtitle");
+  const heroBgUrl = getContentField(content, "home.heroBgImageUrl", language) || "https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1920&q=80";
+  const servicesTitle = getContentField(content, "home.servicesTitle", language) || t("services.title");
+  const servicesSubtitle = getContentField(content, "home.servicesSubtitle", language) || t("services.subtitle");
+  const whyUsTitle = getContentField(content, "home.whyUsTitle", language) || t("whyUs.title");
+  const latestOffersTitle = getContentField(content, "home.latestOffersTitle", language) || t("latestOffers.title");
+  const contactTitle = getContentField(content, "home.contactTitle", language) || t("contact.title");
 
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
-        {/* Background Image Placeholder */}
+        {/* Background Image */}
         <div className="absolute inset-0 image-placeholder bg-gradient-to-br from-primary/90 to-primary/70">
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1920&q=80')] bg-cover bg-center opacity-30" />
+          <div 
+            className="absolute inset-0 bg-cover bg-center opacity-30" 
+            style={{ backgroundImage: `url('${heroBgUrl}')` }}
+          />
         </div>
         
         <div className="container-custom relative z-10 py-20">
           <div className="max-w-3xl mx-auto text-center text-primary-foreground">
             <RevealSection delay={0}>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold mb-6">
-                {t("hero.title")}
+                {heroTitle}
               </h1>
             </RevealSection>
             <RevealSection delay={100}>
               <p className="text-lg md:text-xl opacity-90 mb-8">
-                {t("hero.subtitle")}
+                {heroSubtitle}
               </p>
             </RevealSection>
             <RevealSection delay={200}>
@@ -43,7 +63,7 @@ const Home = () => {
                 <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-300 hover:scale-105 hover:shadow-lg">
                   <Link to="/offers">{t("hero.viewOffers")}</Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 transition-all duration-300 hover:scale-105">
+                <Button asChild size="lg" variant="outline" className="border-primary-foreground bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 transition-all duration-300 hover:scale-105">
                   <Link to="/contacts">{t("hero.contacts")}</Link>
                 </Button>
               </div>
@@ -60,10 +80,10 @@ const Home = () => {
         <div className="container-custom">
           <RevealSection className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-heading font-bold text-foreground mb-4">
-              {t("services.title")}
+              {servicesTitle}
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              {t("services.subtitle")}
+              {servicesSubtitle}
             </p>
           </RevealSection>
 
@@ -145,7 +165,7 @@ const Home = () => {
         <div className="container-custom">
           <RevealSection>
             <h2 className="text-3xl md:text-4xl font-heading font-bold text-center mb-12">
-              {t("whyUs.title")}
+              {whyUsTitle}
             </h2>
           </RevealSection>
 
@@ -219,7 +239,7 @@ const Home = () => {
           <RevealSection>
             <div className="flex items-center justify-between mb-12">
               <h2 className="text-3xl md:text-4xl font-heading font-bold">
-                {t("latestOffers.title")}
+                {latestOffersTitle}
               </h2>
               <Button asChild variant="outline" className="transition-all duration-300 hover:scale-105">
                 <Link to="/offers">{t("latestOffers.viewAll")}</Link>
@@ -227,62 +247,65 @@ const Home = () => {
             </div>
           </RevealSection>
 
-          {offersLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-accent" />
-            </div>
-          ) : latestOffers && latestOffers.length > 0 ? (
-            <div ref={offersRef as React.RefObject<HTMLDivElement>} className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {latestOffers.map((post, index) => (
-                <div
-                  key={post.id}
-                  className="transition-all duration-500 ease-out"
-                  style={{
-                    opacity: offersVisible[index] ? 1 : 0,
-                    transform: offersVisible[index] ? "translateY(0)" : "translateY(30px)",
-                  }}
-                >
-                  <Link to={`/offers/${post.slug}`}>
-                    <Card className="overflow-hidden hover-lift group cursor-pointer h-full">
-                      <div className="aspect-[16/10] overflow-hidden bg-muted">
-                        {post.cover_image_url ? (
-                          <img
-                            src={post.cover_image_url}
-                            alt={getLocalizedField(post, "title", language)}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                            No image
-                          </div>
-                        )}
-                      </div>
-                      <CardContent className="p-6">
-                        <div className="flex items-center gap-2 text-sm text-accent mb-2">
-                          <Calendar size={14} />
-                          {new Date(post.created_at).toLocaleDateString()}
+          {/* Min height container to prevent layout shift */}
+          <div className="min-h-[300px]">
+            {offersLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-accent" />
+              </div>
+            ) : latestOffers && latestOffers.length > 0 ? (
+              <div ref={offersRef as React.RefObject<HTMLDivElement>} className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {latestOffers.map((post, index) => (
+                  <div
+                    key={post.id}
+                    className="transition-all duration-500 ease-out"
+                    style={{
+                      opacity: offersVisible[index] ? 1 : 0,
+                      transform: offersVisible[index] ? "translateY(0)" : "translateY(30px)",
+                    }}
+                  >
+                    <Link to={`/offers/${post.slug}`}>
+                      <Card className="overflow-hidden hover-lift group cursor-pointer h-full">
+                        <div className="aspect-[16/10] overflow-hidden bg-muted">
+                          {post.cover_image_url ? (
+                            <img
+                              src={post.cover_image_url}
+                              alt={getLocalizedField(post, "title", language)}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                              No image
+                            </div>
+                          )}
                         </div>
-                        <h3 className="font-heading font-semibold text-lg mb-2 line-clamp-2 group-hover:text-accent transition-colors">
-                          {getLocalizedField(post, "title", language)}
-                        </h3>
-                        <p className="text-muted-foreground text-sm line-clamp-2">
-                          {getLocalizedField(post, "excerpt", language)}
-                        </p>
-                        <span className="inline-flex items-center gap-1 text-accent text-sm font-medium mt-3 group/link">
-                          {t("offers.readMore")}
-                          <ArrowRight size={14} className="transition-transform duration-300 group-hover/link:translate-x-1" />
-                        </span>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              {t("offers.noResults")}
-            </div>
-          )}
+                        <CardContent className="p-6">
+                          <div className="flex items-center gap-2 text-sm text-accent mb-2">
+                            <Calendar size={14} />
+                            {new Date(post.created_at).toLocaleDateString()}
+                          </div>
+                          <h3 className="font-heading font-semibold text-lg mb-2 line-clamp-2 group-hover:text-accent transition-colors">
+                            {getLocalizedField(post, "title", language)}
+                          </h3>
+                          <p className="text-muted-foreground text-sm line-clamp-2">
+                            {getLocalizedField(post, "excerpt", language)}
+                          </p>
+                          <span className="inline-flex items-center gap-1 text-accent text-sm font-medium mt-3 group/link">
+                            {t("offers.readMore")}
+                            <ArrowRight size={14} className="transition-transform duration-300 group-hover/link:translate-x-1" />
+                          </span>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                {t("offers.noResults")}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
@@ -292,7 +315,7 @@ const Home = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <RevealSection direction="left">
               <h2 className="text-3xl md:text-4xl font-heading font-bold mb-8">
-                {t("contact.title")}
+                {contactTitle}
               </h2>
               
               <div className="space-y-6">

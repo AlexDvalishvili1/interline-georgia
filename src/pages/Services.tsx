@@ -1,9 +1,22 @@
 import { Map, Plane, Ship, CheckCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { RevealSection } from "@/components/animations";
+import { useSiteSettings, getContentField } from "@/hooks/useSiteSettings";
 
 const Services = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { data: settings } = useSiteSettings();
+  const content = settings?.site_content;
+
+  // Get page content from DB with fallback to translation keys
+  const pageTitle = getContentField(content, "services.pageTitle", language) || t("servicesPage.title");
+  const pageSubtitle = getContentField(content, "services.pageSubtitle", language) || t("servicesPage.subtitle");
+  const ctaTitle = getContentField(content, "services.ctaTitle", language) || t("contact.title");
+  const ctaSubtitle = getContentField(content, "services.ctaSubtitle", language) || t("hero.subtitle");
+
+  // Get phones/emails from settings for CTA
+  const phone = settings?.phones?.[0] || settings?.phone || "+995 32 200 00 00";
+  const email = settings?.emails?.[0] || settings?.email || "info@interline.ge";
 
   const services = [
     {
@@ -15,7 +28,8 @@ const Services = () => {
         "servicesPage.tours.feature2",
         "servicesPage.tours.feature3",
       ],
-      image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80",
+      image: getContentField(content, "services.tours.imageUrl", language) || "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80",
+      contentPath: "services.tours",
     },
     {
       icon: Plane,
@@ -26,7 +40,8 @@ const Services = () => {
         "servicesPage.tickets.feature2",
         "servicesPage.tickets.feature3",
       ],
-      image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80",
+      image: getContentField(content, "services.tickets.imageUrl", language) || "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80",
+      contentPath: "services.tickets",
     },
     {
       icon: Ship,
@@ -37,7 +52,8 @@ const Services = () => {
         "servicesPage.cruises.feature2",
         "servicesPage.cruises.feature3",
       ],
-      image: "https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&q=80",
+      image: getContentField(content, "services.cruises.imageUrl", language) || "https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&q=80",
+      contentPath: "services.cruises",
     },
   ];
 
@@ -49,10 +65,10 @@ const Services = () => {
           <RevealSection>
             <div className="max-w-2xl">
               <h1 className="text-4xl md:text-5xl font-heading font-bold mb-4">
-                {t("servicesPage.title")}
+                {pageTitle}
               </h1>
               <p className="text-lg opacity-90">
-                {t("servicesPage.subtitle")}
+                {pageSubtitle}
               </p>
             </div>
           </RevealSection>
@@ -64,61 +80,67 @@ const Services = () => {
       <section className="section-padding bg-background">
         <div className="container-custom">
           <div className="space-y-20">
-            {services.map((service, index) => (
-              <div
-                key={service.titleKey}
-                className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center ${
-                  index % 2 === 1 ? "lg:flex-row-reverse" : ""
-                }`}
-              >
-                {/* Image */}
-                <RevealSection 
-                  direction={index % 2 === 0 ? "left" : "right"}
-                  className={`order-1 ${index % 2 === 1 ? "lg:order-2" : ""}`}
+            {services.map((service, index) => {
+              // Try to get content from DB first, fallback to translation keys
+              const title = getContentField(content, `${service.contentPath}.title`, language) || t(service.titleKey);
+              const description = getContentField(content, `${service.contentPath}.description`, language) || t(service.descriptionKey);
+              
+              return (
+                <div
+                  key={service.titleKey}
+                  className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center ${
+                    index % 2 === 1 ? "lg:flex-row-reverse" : ""
+                  }`}
                 >
-                  <div className="aspect-[4/3] rounded-xl overflow-hidden image-placeholder group">
-                    <img
-                      src={service.image}
-                      alt={t(service.titleKey)}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  </div>
-                </RevealSection>
-
-                {/* Content */}
-                <RevealSection
-                  direction={index % 2 === 0 ? "right" : "left"}
-                  delay={100}
-                  className={`order-2 ${index % 2 === 1 ? "lg:order-1" : ""}`}
-                >
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-14 h-14 rounded-full bg-accent/10 flex items-center justify-center transition-transform duration-300 hover:scale-110">
-                      <service.icon className="w-7 h-7 text-accent" />
+                  {/* Image */}
+                  <RevealSection 
+                    direction={index % 2 === 0 ? "left" : "right"}
+                    className={`order-1 ${index % 2 === 1 ? "lg:order-2" : ""}`}
+                  >
+                    <div className="aspect-[4/3] rounded-xl overflow-hidden image-placeholder group">
+                      <img
+                        src={service.image}
+                        alt={title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
                     </div>
-                    <h2 className="text-3xl font-heading font-bold">
-                      {t(service.titleKey)}
-                    </h2>
-                  </div>
+                  </RevealSection>
 
-                  <p className="text-muted-foreground text-lg mb-8">
-                    {t(service.descriptionKey)}
-                  </p>
+                  {/* Content */}
+                  <RevealSection
+                    direction={index % 2 === 0 ? "right" : "left"}
+                    delay={100}
+                    className={`order-2 ${index % 2 === 1 ? "lg:order-1" : ""}`}
+                  >
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-14 h-14 rounded-full bg-accent/10 flex items-center justify-center transition-transform duration-300 hover:scale-110">
+                        <service.icon className="w-7 h-7 text-accent" />
+                      </div>
+                      <h2 className="text-3xl font-heading font-bold">
+                        {title}
+                      </h2>
+                    </div>
 
-                  <ul className="space-y-3">
-                    {service.features.map((feature, featureIndex) => (
-                      <li 
-                        key={feature} 
-                        className="flex items-center gap-3 transition-all duration-300 hover:translate-x-1"
-                        style={{ transitionDelay: `${featureIndex * 50}ms` }}
-                      >
-                        <CheckCircle className="w-5 h-5 text-accent flex-shrink-0" />
-                        <span>{t(feature)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </RevealSection>
-              </div>
-            ))}
+                    <p className="text-muted-foreground text-lg mb-8">
+                      {description}
+                    </p>
+
+                    <ul className="space-y-3">
+                      {service.features.map((feature, featureIndex) => (
+                        <li 
+                          key={feature} 
+                          className="flex items-center gap-3 transition-all duration-300 hover:translate-x-1"
+                          style={{ transitionDelay: `${featureIndex * 50}ms` }}
+                        >
+                          <CheckCircle className="w-5 h-5 text-accent flex-shrink-0" />
+                          <span>{t(feature)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </RevealSection>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -128,23 +150,23 @@ const Services = () => {
         <div className="container-custom text-center">
           <RevealSection>
             <h2 className="text-3xl font-heading font-bold mb-4">
-              {t("contact.title")}
+              {ctaTitle}
             </h2>
             <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-              {t("hero.subtitle")}
+              {ctaSubtitle}
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <a
-                href="tel:+995322000000"
+                href={`tel:${phone.replace(/\s/g, "")}`}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-accent-foreground rounded-md font-medium hover:bg-accent/90 transition-all duration-300 hover:scale-105 hover:shadow-lg"
               >
-                +995 32 200 00 00
+                {phone}
               </a>
               <a
-                href="mailto:info@interline.ge"
+                href={`mailto:${email}`}
                 className="inline-flex items-center gap-2 px-6 py-3 border border-border rounded-md font-medium hover:bg-muted transition-all duration-300 hover:scale-105"
               >
-                info@interline.ge
+                {email}
               </a>
             </div>
           </RevealSection>

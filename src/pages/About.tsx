@@ -3,11 +3,23 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { RevealSection } from "@/components/animations";
 import { useStaggerReveal } from "@/hooks/useRevealOnScroll";
+import { useSiteSettings, getContentField } from "@/hooks/useSiteSettings";
 
 const About = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { containerRef: valuesRef, visibleItems: valuesVisible } = useStaggerReveal(3);
   const { containerRef: statsRef, visibleItems: statsVisible } = useStaggerReveal(4);
+  const { data: settings } = useSiteSettings();
+  const content = settings?.site_content;
+
+  // Get page content from DB with fallback to translation keys
+  const pageTitle = getContentField(content, "about.pageTitle", language) || t("about.title");
+  const pageSubtitle = getContentField(content, "about.pageSubtitle", language) || t("about.subtitle");
+  const description = getContentField(content, "about.description", language) || t("about.description");
+  const mission = getContentField(content, "about.mission", language) || t("about.mission");
+  const missionText = getContentField(content, "about.missionText", language) || t("about.missionText");
+  const valuesTitle = getContentField(content, "about.valuesTitle", language) || t("about.values");
+  const aboutImageUrl = getContentField(content, "about.imageUrl", language) || "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=800&q=80";
 
   const values = [
     {
@@ -27,11 +39,12 @@ const About = () => {
     },
   ];
 
-  const stats = [
-    { value: "20+", label: "Years Experience" },
-    { value: "5000+", label: "Cruise Routes" },
-    { value: "100+", label: "Destinations" },
-    { value: "10K+", label: "Happy Clients" },
+  // Try to get stats from DB, fallback to hardcoded
+  const defaultStats = [
+    { value: "20+", labelKey: "Years Experience" },
+    { value: "5000+", labelKey: "Cruise Routes" },
+    { value: "100+", labelKey: "Destinations" },
+    { value: "10K+", labelKey: "Happy Clients" },
   ];
 
   return (
@@ -42,10 +55,10 @@ const About = () => {
           <RevealSection>
             <div className="max-w-2xl">
               <h1 className="text-4xl md:text-5xl font-heading font-bold mb-4">
-                {t("about.title")}
+                {pageTitle}
               </h1>
               <p className="text-lg opacity-90">
-                {t("about.subtitle")}
+                {pageSubtitle}
               </p>
             </div>
           </RevealSection>
@@ -61,7 +74,7 @@ const About = () => {
             <RevealSection direction="left">
               <div className="aspect-[4/3] rounded-xl overflow-hidden image-placeholder group">
                 <img
-                  src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=800&q=80"
+                  src={aboutImageUrl}
                   alt="Interline Georgia Team"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
@@ -71,15 +84,15 @@ const About = () => {
             {/* Text Content */}
             <RevealSection direction="right" delay={100}>
               <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-                {t("about.description")}
+                {description}
               </p>
 
               <div className="p-6 bg-secondary rounded-xl transition-all duration-300 hover:shadow-lg">
                 <h3 className="text-xl font-heading font-semibold mb-3">
-                  {t("about.mission")}
+                  {mission}
                 </h3>
                 <p className="text-muted-foreground">
-                  {t("about.missionText")}
+                  {missionText}
                 </p>
               </div>
             </RevealSection>
@@ -92,7 +105,7 @@ const About = () => {
         <div className="container-custom">
           <RevealSection>
             <h2 className="text-3xl font-heading font-bold text-center mb-12">
-              {t("about.values")}
+              {valuesTitle}
             </h2>
           </RevealSection>
 
@@ -129,9 +142,9 @@ const About = () => {
       <section className="py-16 bg-primary text-primary-foreground overflow-hidden">
         <div className="container-custom">
           <div ref={statsRef as React.RefObject<HTMLDivElement>} className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {stats.map((stat, index) => (
+            {defaultStats.map((stat, index) => (
               <div
-                key={stat.label}
+                key={stat.labelKey}
                 className="transition-all duration-500 ease-out"
                 style={{
                   opacity: statsVisible[index] ? 1 : 0,
@@ -139,7 +152,7 @@ const About = () => {
                 }}
               >
                 <p className="text-4xl md:text-5xl font-heading font-bold text-gold mb-2">{stat.value}</p>
-                <p className="text-sm opacity-80">{stat.label}</p>
+                <p className="text-sm opacity-80">{stat.labelKey}</p>
               </div>
             ))}
           </div>
