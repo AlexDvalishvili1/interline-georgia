@@ -8,6 +8,36 @@ export interface LocalizedField {
   en?: string;
 }
 
+// Block item interfaces for repeatable content
+export interface WhyUsItem {
+  id: string;
+  icon: string;
+  title: LocalizedField;
+  description: LocalizedField;
+}
+
+export interface ServiceItem {
+  id: string;
+  icon: string;
+  imageUrl: string;
+  title: LocalizedField;
+  description: LocalizedField;
+  features: LocalizedField[];
+}
+
+export interface ValueItem {
+  id: string;
+  icon: string;
+  title: LocalizedField;
+  description: LocalizedField;
+}
+
+export interface StatItem {
+  id: string;
+  value: string;
+  label: LocalizedField;
+}
+
 // Site content structure for all pages
 export interface SiteContent {
   home?: {
@@ -17,6 +47,7 @@ export interface SiteContent {
     servicesTitle?: LocalizedField;
     servicesSubtitle?: LocalizedField;
     whyUsTitle?: LocalizedField;
+    whyUsItems?: WhyUsItem[];
     latestOffersTitle?: LocalizedField;
     contactTitle?: LocalizedField;
   };
@@ -25,42 +56,18 @@ export interface SiteContent {
     pageSubtitle?: LocalizedField;
     ctaTitle?: LocalizedField;
     ctaSubtitle?: LocalizedField;
-    tours?: {
-      title?: LocalizedField;
-      description?: LocalizedField;
-      features?: LocalizedField[];
-      imageUrl?: string;
-    };
-    tickets?: {
-      title?: LocalizedField;
-      description?: LocalizedField;
-      features?: LocalizedField[];
-      imageUrl?: string;
-    };
-    cruises?: {
-      title?: LocalizedField;
-      description?: LocalizedField;
-      features?: LocalizedField[];
-      imageUrl?: string;
-    };
+    items?: ServiceItem[];
   };
   about?: {
     pageTitle?: LocalizedField;
     pageSubtitle?: LocalizedField;
     description?: LocalizedField;
-    mission?: LocalizedField;
+    missionTitle?: LocalizedField;
     missionText?: LocalizedField;
-    valuesTitle?: LocalizedField;
     imageUrl?: string;
-    values?: Array<{
-      icon?: string;
-      title?: LocalizedField;
-      description?: LocalizedField;
-    }>;
-    stats?: Array<{
-      value?: string;
-      label?: LocalizedField;
-    }>;
+    valuesTitle?: LocalizedField;
+    values?: ValueItem[];
+    stats?: StatItem[];
   };
   contacts?: {
     pageTitle?: LocalizedField;
@@ -70,7 +77,7 @@ export interface SiteContent {
     emailLabel?: LocalizedField;
     addressLabel?: LocalizedField;
     workingHoursLabel?: LocalizedField;
-    followUsLabel?: LocalizedField;
+    socialTitle?: LocalizedField;
   };
   footer?: {
     tagline?: LocalizedField;
@@ -149,6 +156,24 @@ export const getContentField = (
   return "";
 };
 
+// Get array content from site_content
+export const getContentArray = <T>(
+  content: SiteContent | null | undefined,
+  path: string
+): T[] => {
+  if (!content) return [];
+  
+  const keys = path.split(".");
+  let value: any = content;
+  
+  for (const key of keys) {
+    value = value?.[key];
+    if (value === undefined) break;
+  }
+  
+  return Array.isArray(value) ? value : [];
+};
+
 // Fetch site settings (public)
 export const useSiteSettings = () => {
   return useQuery({
@@ -174,7 +199,7 @@ export const useSiteSettings = () => {
 
       return null;
     },
-    staleTime: 0, // Always consider data stale - fixes caching issue
+    staleTime: 0,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
   });
@@ -197,7 +222,6 @@ export const useUpdateSiteSettings = () => {
       return data;
     },
     onSuccess: (data) => {
-      // Use actual returned data from Supabase (includes updated_at)
       const updatedSettings = {
         ...data,
         phones: (data.phones as string[]) || [],

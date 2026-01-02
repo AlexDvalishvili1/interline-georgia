@@ -1,22 +1,36 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Save, Loader2, Building, Phone, Globe, Plus, X, Image, Home, Briefcase, Info, Mail, FileText } from "lucide-react";
 import { toast } from "sonner";
-import { useSiteSettings, useUpdateSiteSettings, type SiteSettings, type SiteContent, type LocalizedField } from "@/hooks/useSiteSettings";
+import { 
+  useSiteSettings, 
+  useUpdateSiteSettings, 
+  type SiteSettings, 
+  type SiteContent,
+  type LocalizedField,
+  type WhyUsItem,
+  type ServiceItem,
+  type ValueItem,
+  type StatItem,
+} from "@/hooks/useSiteSettings";
 import { ImageUploader } from "@/components/admin/ImageUploader";
+import { LocalizedInput } from "@/components/admin/LocalizedInput";
+import { BlockEditor } from "@/components/admin/BlockEditor";
+import { IconPicker } from "@/components/admin/IconPicker";
 
-type Language = "en" | "ka" | "ru";
-
-const LANGUAGES: { code: Language; label: string; flag: string }[] = [
-  { code: "en", label: "English", flag: "🇬🇧" },
-  { code: "ka", label: "ქართული", flag: "🇬🇪" },
-  { code: "ru", label: "Русский", flag: "🇷🇺" },
+// Language tabs for direct settings fields (company name, address, etc.)
+const LANGUAGES = [
+  { code: "en" as const, label: "English", flag: "🇬🇧" },
+  { code: "ru" as const, label: "Russian", flag: "🇷🇺" },
+  { code: "ka" as const, label: "Georgian", flag: "🇬🇪" },
 ];
+
+// Helper to generate unique IDs
+const generateId = () => crypto.randomUUID();
 
 const AdminSettings = () => {
   const { data: fetchedSettings, isLoading } = useSiteSettings();
@@ -27,9 +41,9 @@ const AdminSettings = () => {
     if (fetchedSettings && !settings) {
       setSettings(fetchedSettings);
     }
-  }, [fetchedSettings]);
+  }, [fetchedSettings, settings]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!settings) return;
     try {
       await updateMutation.mutateAsync(settings);
@@ -38,88 +52,126 @@ const AdminSettings = () => {
       console.error("Error saving settings:", error);
       toast.error("Failed to save settings");
     }
-  };
+  }, [settings, updateMutation]);
 
-  const updateField = (field: keyof SiteSettings, value: any) => {
-    if (settings) setSettings({ ...settings, [field]: value });
-  };
+  const updateField = useCallback((field: keyof SiteSettings, value: any) => {
+    setSettings(prev => prev ? { ...prev, [field]: value } : prev);
+  }, []);
 
-  // Deep update for site_content
-  const updateContent = (path: string[], value: any) => {
-    if (!settings) return;
-    const content = JSON.parse(JSON.stringify(settings.site_content || {}));
-    let current: any = content;
-    for (let i = 0; i < path.length - 1; i++) {
-      if (!current[path[i]]) current[path[i]] = {};
-      current = current[path[i]];
-    }
-    current[path[path.length - 1]] = value;
-    setSettings({ ...settings, site_content: content });
-  };
+  // Optimized content update using shallow copy
+  const updateContent = useCallback((path: string[], value: any) => {
+    setSettings(prev => {
+      if (!prev) return prev;
+      
+      const content = { ...prev.site_content };
+      let current: any = content;
+      
+      // Build nested path with shallow copies
+      for (let i = 0; i < path.length - 1; i++) {
+        const key = path[i];
+        current[key] = current[key] ? { ...current[key] } : {};
+        current = current[key];
+      }
+      current[path[path.length - 1]] = value;
+      
+      return { ...prev, site_content: content };
+    });
+  }, []);
 
-  const getContent = (path: string[]): any => {
-    if (!settings?.site_content) return "";
+  const getContent = useCallback((path: string[]): any => {
+    if (!settings?.site_content) return undefined;
     let current: any = settings.site_content;
     for (const key of path) {
-      if (!current[key]) return "";
+      if (current[key] === undefined) return undefined;
       current = current[key];
     }
-    return current || "";
-  };
+    return current;
+  }, [settings?.site_content]);
 
   // Array helpers for phones/emails
-  const addPhone = () => updateField("phones", [...(settings?.phones || []), ""]);
-  const updatePhone = (index: number, value: string) => {
-    if (settings) {
-      const phones = [...(settings.phones || [])];
+  const addPhone = useCallback(() => {
+    setSettings(prev => prev ? { ...prev, phones: [...(prev.phones || []), ""] } : prev);
+  }, []);
+  
+  const updatePhone = useCallback((index: number, value: string) => {
+    setSettings(prev => {
+      if (!prev) return prev;
+      const phones = [...(prev.phones || [])];
       phones[index] = value;
-      updateField("phones", phones);
-    }
-  };
-  const removePhone = (index: number) => {
-    if (settings) updateField("phones", settings.phones.filter((_, i) => i !== index));
-  };
+      return { ...prev, phones };
+    });
+  }, []);
+  
+  const removePhone = useCallback((index: number) => {
+    setSettings(prev => prev ? { ...prev, phones: prev.phones.filter((_, i) => i !== index) } : prev);
+  }, []);
 
-  const addEmail = () => updateField("emails", [...(settings?.emails || []), ""]);
-  const updateEmail = (index: number, value: string) => {
-    if (settings) {
-      const emails = [...(settings.emails || [])];
+  const addEmail = useCallback(() => {
+    setSettings(prev => prev ? { ...prev, emails: [...(prev.emails || []), ""] } : prev);
+  }, []);
+  
+  const updateEmail = useCallback((index: number, value: string) => {
+    setSettings(prev => {
+      if (!prev) return prev;
+      const emails = [...(prev.emails || [])];
       emails[index] = value;
-      updateField("emails", emails);
-    }
-  };
-  const removeEmail = (index: number) => {
-    if (settings) updateField("emails", settings.emails.filter((_, i) => i !== index));
-  };
+      return { ...prev, emails };
+    });
+  }, []);
+  
+  const removeEmail = useCallback((index: number) => {
+    setSettings(prev => prev ? { ...prev, emails: prev.emails.filter((_, i) => i !== index) } : prev);
+  }, []);
 
-  // Localized field component
-  const LocalizedInput = ({ label, path, multiline = false }: { label: string; path: string[]; multiline?: boolean }) => (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      <Tabs defaultValue="en" className="w-full">
-        <TabsList className="mb-2">
-          {LANGUAGES.map((lang) => (
-            <TabsTrigger key={lang.code} value={lang.code}>{lang.flag} {lang.code.toUpperCase()}</TabsTrigger>
-          ))}
-        </TabsList>
-        {LANGUAGES.map((lang) => (
-          <TabsContent key={lang.code} value={lang.code}>
-            {multiline ? (
-              <Textarea
-                value={getContent([...path, lang.code]) || ""}
-                onChange={(e) => updateContent([...path, lang.code], e.target.value)}
-                rows={3}
-              />
-            ) : (
-              <Input
-                value={getContent([...path, lang.code]) || ""}
-                onChange={(e) => updateContent([...path, lang.code], e.target.value)}
-              />
-            )}
-          </TabsContent>
-        ))}
-      </Tabs>
-    </div>
+  // Block creators
+  const createWhyUsItem = useCallback((): WhyUsItem => ({
+    id: generateId(),
+    icon: "award",
+    title: { en: "", ru: "", ka: "" },
+    description: { en: "", ru: "", ka: "" },
+  }), []);
+
+  const createServiceItem = useCallback((): ServiceItem => ({
+    id: generateId(),
+    icon: "map",
+    imageUrl: "",
+    title: { en: "", ru: "", ka: "" },
+    description: { en: "", ru: "", ka: "" },
+    features: [],
+  }), []);
+
+  const createValueItem = useCallback((): ValueItem => ({
+    id: generateId(),
+    icon: "award",
+    title: { en: "", ru: "", ka: "" },
+    description: { en: "", ru: "", ka: "" },
+  }), []);
+
+  const createStatItem = useCallback((): StatItem => ({
+    id: generateId(),
+    value: "",
+    label: { en: "", ru: "", ka: "" },
+  }), []);
+
+  // Memoized content values to prevent unnecessary re-renders
+  const whyUsItems = useMemo(() => 
+    (getContent(["home", "whyUsItems"]) as WhyUsItem[]) || [],
+    [getContent]
+  );
+
+  const serviceItems = useMemo(() =>
+    (getContent(["services", "items"]) as ServiceItem[]) || [],
+    [getContent]
+  );
+
+  const valueItems = useMemo(() =>
+    (getContent(["about", "values"]) as ValueItem[]) || [],
+    [getContent]
+  );
+
+  const statItems = useMemo(() =>
+    (getContent(["about", "stats"]) as StatItem[]) || [],
+    [getContent]
   );
 
   if (isLoading) {
@@ -167,7 +219,10 @@ const AdminSettings = () => {
                 </TabsList>
                 {LANGUAGES.map((lang) => (
                   <TabsContent key={lang.code} value={lang.code}>
-                    <Input value={settings[`company_name_${lang.code}` as keyof SiteSettings] as string || ""} onChange={(e) => updateField(`company_name_${lang.code}` as keyof SiteSettings, e.target.value)} />
+                    <Input 
+                      value={settings[`company_name_${lang.code}` as keyof SiteSettings] as string || ""} 
+                      onChange={(e) => updateField(`company_name_${lang.code}` as keyof SiteSettings, e.target.value)} 
+                    />
                   </TabsContent>
                 ))}
               </Tabs>
@@ -289,8 +344,17 @@ const AdminSettings = () => {
           <Card>
             <CardHeader><CardTitle>Hero Section</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <LocalizedInput label="Hero Title" path={["home", "heroTitle"]} />
-              <LocalizedInput label="Hero Subtitle" path={["home", "heroSubtitle"]} multiline />
+              <LocalizedInput 
+                label="Hero Title" 
+                value={getContent(["home", "heroTitle"]) || {}}
+                onChange={(value) => updateContent(["home", "heroTitle"], value)}
+              />
+              <LocalizedInput 
+                label="Hero Subtitle" 
+                value={getContent(["home", "heroSubtitle"]) || {}}
+                onChange={(value) => updateContent(["home", "heroSubtitle"], value)}
+                multiline 
+              />
               <div className="space-y-2">
                 <Label>Hero Background Image</Label>
                 <ImageUploader
@@ -306,23 +370,72 @@ const AdminSettings = () => {
           <Card>
             <CardHeader><CardTitle>Services Section</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <LocalizedInput label="Section Title" path={["home", "servicesTitle"]} />
-              <LocalizedInput label="Section Subtitle" path={["home", "servicesSubtitle"]} />
+              <LocalizedInput 
+                label="Section Title" 
+                value={getContent(["home", "servicesTitle"]) || {}}
+                onChange={(value) => updateContent(["home", "servicesTitle"], value)}
+              />
+              <LocalizedInput 
+                label="Section Subtitle" 
+                value={getContent(["home", "servicesSubtitle"]) || {}}
+                onChange={(value) => updateContent(["home", "servicesSubtitle"], value)}
+              />
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader><CardTitle>Why Us Section</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <LocalizedInput label="Section Title" path={["home", "whyUsTitle"]} />
+              <LocalizedInput 
+                label="Section Title" 
+                value={getContent(["home", "whyUsTitle"]) || {}}
+                onChange={(value) => updateContent(["home", "whyUsTitle"], value)}
+              />
+              
+              <div className="pt-4 border-t">
+                <Label className="text-base font-semibold mb-4 block">Why Us Items</Label>
+                <BlockEditor
+                  items={whyUsItems}
+                  onChange={(items) => updateContent(["home", "whyUsItems"], items)}
+                  createItem={createWhyUsItem}
+                  itemLabel="Item"
+                  renderItem={(item, _index, update) => (
+                    <div className="space-y-4">
+                      <IconPicker
+                        value={item.icon}
+                        onChange={(icon) => update({ icon })}
+                      />
+                      <LocalizedInput
+                        label="Title"
+                        value={item.title}
+                        onChange={(title) => update({ title })}
+                      />
+                      <LocalizedInput
+                        label="Description"
+                        value={item.description}
+                        onChange={(description) => update({ description })}
+                        multiline
+                      />
+                    </div>
+                  )}
+                />
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader><CardTitle>Latest Offers Section</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <LocalizedInput label="Section Title" path={["home", "latestOffersTitle"]} />
-              <LocalizedInput label="Contact Title" path={["home", "contactTitle"]} />
+              <LocalizedInput 
+                label="Section Title" 
+                value={getContent(["home", "latestOffersTitle"]) || {}}
+                onChange={(value) => updateContent(["home", "latestOffersTitle"], value)}
+              />
+              <LocalizedInput 
+                label="Contact Title" 
+                value={getContent(["home", "contactTitle"]) || {}}
+                onChange={(value) => updateContent(["home", "contactTitle"], value)}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -332,29 +445,78 @@ const AdminSettings = () => {
           <Card>
             <CardHeader><CardTitle>Page Header</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <LocalizedInput label="Page Title" path={["services", "pageTitle"]} />
-              <LocalizedInput label="Page Subtitle" path={["services", "pageSubtitle"]} multiline />
+              <LocalizedInput 
+                label="Page Title" 
+                value={getContent(["services", "pageTitle"]) || {}}
+                onChange={(value) => updateContent(["services", "pageTitle"], value)}
+              />
+              <LocalizedInput 
+                label="Page Subtitle" 
+                value={getContent(["services", "pageSubtitle"]) || {}}
+                onChange={(value) => updateContent(["services", "pageSubtitle"], value)}
+                multiline 
+              />
             </CardContent>
           </Card>
 
-          {["tours", "tickets", "cruises"].map((service) => (
-            <Card key={service}>
-              <CardHeader><CardTitle className="capitalize">{service}</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <LocalizedInput label="Title" path={["services", service, "title"]} />
-                <LocalizedInput label="Description" path={["services", service, "description"]} multiline />
-                <div className="space-y-2">
-                  <Label>Image</Label>
-                  <ImageUploader
-                    value={getContent(["services", service, "imageUrl"]) || ""}
-                    onChange={(url) => updateContent(["services", service, "imageUrl"], url)}
-                    label={`${service} Image`}
-                    bucket="post-images"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          <Card>
+            <CardHeader><CardTitle>Service Items</CardTitle></CardHeader>
+            <CardContent>
+              <BlockEditor
+                items={serviceItems}
+                onChange={(items) => updateContent(["services", "items"], items)}
+                createItem={createServiceItem}
+                itemLabel="Service"
+                renderItem={(item, _index, update) => (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <IconPicker
+                        value={item.icon}
+                        onChange={(icon) => update({ icon })}
+                      />
+                      <div className="space-y-2">
+                        <Label>Image</Label>
+                        <ImageUploader
+                          value={item.imageUrl || ""}
+                          onChange={(imageUrl) => update({ imageUrl })}
+                          label="Service Image"
+                          bucket="post-images"
+                        />
+                      </div>
+                    </div>
+                    <LocalizedInput
+                      label="Title"
+                      value={item.title}
+                      onChange={(title) => update({ title })}
+                    />
+                    <LocalizedInput
+                      label="Description"
+                      value={item.description}
+                      onChange={(description) => update({ description })}
+                      multiline
+                    />
+                  </div>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle>Call to Action</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <LocalizedInput 
+                label="CTA Title" 
+                value={getContent(["services", "ctaTitle"]) || {}}
+                onChange={(value) => updateContent(["services", "ctaTitle"], value)}
+              />
+              <LocalizedInput 
+                label="CTA Subtitle" 
+                value={getContent(["services", "ctaSubtitle"]) || {}}
+                onChange={(value) => updateContent(["services", "ctaSubtitle"], value)}
+                multiline 
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* ABOUT PAGE TAB */}
@@ -362,31 +524,118 @@ const AdminSettings = () => {
           <Card>
             <CardHeader><CardTitle>Page Header</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <LocalizedInput label="Page Title" path={["about", "pageTitle"]} />
-              <LocalizedInput label="Page Subtitle" path={["about", "pageSubtitle"]} multiline />
+              <LocalizedInput 
+                label="Page Title" 
+                value={getContent(["about", "pageTitle"]) || {}}
+                onChange={(value) => updateContent(["about", "pageTitle"], value)}
+              />
+              <LocalizedInput 
+                label="Page Subtitle" 
+                value={getContent(["about", "pageSubtitle"]) || {}}
+                onChange={(value) => updateContent(["about", "pageSubtitle"], value)}
+                multiline 
+              />
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader><CardTitle>Main Content</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <LocalizedInput label="Description" path={["about", "description"]} multiline />
-              <LocalizedInput label="Mission Title" path={["about", "missionTitle"]} />
-              <LocalizedInput label="Mission Text" path={["about", "missionText"]} multiline />
+              <LocalizedInput 
+                label="Description" 
+                value={getContent(["about", "description"]) || {}}
+                onChange={(value) => updateContent(["about", "description"], value)}
+                multiline 
+              />
+              <LocalizedInput 
+                label="Mission Title" 
+                value={getContent(["about", "missionTitle"]) || {}}
+                onChange={(value) => updateContent(["about", "missionTitle"], value)}
+              />
+              <LocalizedInput 
+                label="Mission Text" 
+                value={getContent(["about", "missionText"]) || {}}
+                onChange={(value) => updateContent(["about", "missionText"], value)}
+                multiline 
+              />
+              <div className="space-y-2">
+                <Label>About Image</Label>
+                <ImageUploader
+                  value={getContent(["about", "imageUrl"]) || ""}
+                  onChange={(url) => updateContent(["about", "imageUrl"], url)}
+                  label="About Image"
+                  bucket="post-images"
+                />
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader><CardTitle>Values Section</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <LocalizedInput label="Values Title" path={["about", "valuesTitle"]} />
-              {[0, 1, 2].map((idx) => (
-                <div key={idx} className="p-4 border rounded-lg space-y-2">
-                  <Label className="font-semibold">Value {idx + 1}</Label>
-                  <LocalizedInput label="Title" path={["about", "values", String(idx), "title"]} />
-                  <LocalizedInput label="Description" path={["about", "values", String(idx), "description"]} multiline />
-                </div>
-              ))}
+              <LocalizedInput 
+                label="Values Title" 
+                value={getContent(["about", "valuesTitle"]) || {}}
+                onChange={(value) => updateContent(["about", "valuesTitle"], value)}
+              />
+              
+              <div className="pt-4 border-t">
+                <Label className="text-base font-semibold mb-4 block">Values</Label>
+                <BlockEditor
+                  items={valueItems}
+                  onChange={(items) => updateContent(["about", "values"], items)}
+                  createItem={createValueItem}
+                  itemLabel="Value"
+                  renderItem={(item, _index, update) => (
+                    <div className="space-y-4">
+                      <IconPicker
+                        value={item.icon}
+                        onChange={(icon) => update({ icon })}
+                      />
+                      <LocalizedInput
+                        label="Title"
+                        value={item.title}
+                        onChange={(title) => update({ title })}
+                      />
+                      <LocalizedInput
+                        label="Description"
+                        value={item.description}
+                        onChange={(description) => update({ description })}
+                        multiline
+                      />
+                    </div>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle>Statistics</CardTitle></CardHeader>
+            <CardContent>
+              <BlockEditor
+                items={statItems}
+                onChange={(items) => updateContent(["about", "stats"], items)}
+                createItem={createStatItem}
+                itemLabel="Stat"
+                renderItem={(item, _index, update) => (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Value (e.g., "20+", "5000+")</Label>
+                      <Input
+                        value={item.value}
+                        onChange={(e) => update({ value: e.target.value })}
+                        placeholder="20+"
+                      />
+                    </div>
+                    <LocalizedInput
+                      label="Label"
+                      value={item.label}
+                      onChange={(label) => update({ label })}
+                    />
+                  </div>
+                )}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -396,26 +645,59 @@ const AdminSettings = () => {
           <Card>
             <CardHeader><CardTitle>Page Header</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <LocalizedInput label="Page Title" path={["contacts", "pageTitle"]} />
-              <LocalizedInput label="Page Subtitle" path={["contacts", "pageSubtitle"]} multiline />
+              <LocalizedInput 
+                label="Page Title" 
+                value={getContent(["contacts", "pageTitle"]) || {}}
+                onChange={(value) => updateContent(["contacts", "pageTitle"], value)}
+              />
+              <LocalizedInput 
+                label="Page Subtitle" 
+                value={getContent(["contacts", "pageSubtitle"]) || {}}
+                onChange={(value) => updateContent(["contacts", "pageSubtitle"], value)}
+                multiline 
+              />
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader><CardTitle>Contact Labels</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <LocalizedInput label="Phone Label" path={["contacts", "phoneLabel"]} />
-              <LocalizedInput label="WhatsApp Label" path={["contacts", "whatsappLabel"]} />
-              <LocalizedInput label="Email Label" path={["contacts", "emailLabel"]} />
-              <LocalizedInput label="Address Label" path={["contacts", "addressLabel"]} />
-              <LocalizedInput label="Working Hours Label" path={["contacts", "workingHoursLabel"]} />
+              <LocalizedInput 
+                label="Phone Label" 
+                value={getContent(["contacts", "phoneLabel"]) || {}}
+                onChange={(value) => updateContent(["contacts", "phoneLabel"], value)}
+              />
+              <LocalizedInput 
+                label="WhatsApp Label" 
+                value={getContent(["contacts", "whatsappLabel"]) || {}}
+                onChange={(value) => updateContent(["contacts", "whatsappLabel"], value)}
+              />
+              <LocalizedInput 
+                label="Email Label" 
+                value={getContent(["contacts", "emailLabel"]) || {}}
+                onChange={(value) => updateContent(["contacts", "emailLabel"], value)}
+              />
+              <LocalizedInput 
+                label="Address Label" 
+                value={getContent(["contacts", "addressLabel"]) || {}}
+                onChange={(value) => updateContent(["contacts", "addressLabel"], value)}
+              />
+              <LocalizedInput 
+                label="Working Hours Label" 
+                value={getContent(["contacts", "workingHoursLabel"]) || {}}
+                onChange={(value) => updateContent(["contacts", "workingHoursLabel"], value)}
+              />
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader><CardTitle>Social Section</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <LocalizedInput label="Social Title" path={["contacts", "socialTitle"]} />
+              <LocalizedInput 
+                label="Social Title" 
+                value={getContent(["contacts", "socialTitle"]) || {}}
+                onChange={(value) => updateContent(["contacts", "socialTitle"], value)}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -425,10 +707,27 @@ const AdminSettings = () => {
           <Card>
             <CardHeader><CardTitle>Footer Content</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <LocalizedInput label="Tagline" path={["footer", "tagline"]} multiline />
-              <LocalizedInput label="Quick Links Title" path={["footer", "quickLinksTitle"]} />
-              <LocalizedInput label="Contact Title" path={["footer", "contactTitle"]} />
-              <LocalizedInput label="Rights Text" path={["footer", "rightsText"]} />
+              <LocalizedInput 
+                label="Tagline" 
+                value={getContent(["footer", "tagline"]) || {}}
+                onChange={(value) => updateContent(["footer", "tagline"], value)}
+                multiline 
+              />
+              <LocalizedInput 
+                label="Quick Links Title" 
+                value={getContent(["footer", "quickLinksTitle"]) || {}}
+                onChange={(value) => updateContent(["footer", "quickLinksTitle"], value)}
+              />
+              <LocalizedInput 
+                label="Contact Title" 
+                value={getContent(["footer", "contactTitle"]) || {}}
+                onChange={(value) => updateContent(["footer", "contactTitle"], value)}
+              />
+              <LocalizedInput 
+                label="Rights Text" 
+                value={getContent(["footer", "rightsText"]) || {}}
+                onChange={(value) => updateContent(["footer", "rightsText"], value)}
+              />
             </CardContent>
           </Card>
         </TabsContent>

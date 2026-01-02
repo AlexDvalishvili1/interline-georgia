@@ -1,32 +1,32 @@
 import { Link } from "react-router-dom";
-import { Plane, Ship, Map, Award, Globe, Headphones, Clock, Calendar, ArrowRight, Loader2 } from "lucide-react";
+import { Plane, Ship, Map, Calendar, ArrowRight, Loader2, Clock } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { RevealSection } from "@/components/animations";
 import { useStaggerReveal } from "@/hooks/useRevealOnScroll";
 import { useLatestOffers, getLocalizedField } from "@/hooks/usePosts";
-import { useSiteSettings, getLocalizedSettingsField, getContentField } from "@/hooks/useSiteSettings";
+import { useSiteSettings, getLocalizedSettingsField, getContentField, getContentArray, type WhyUsItem } from "@/hooks/useSiteSettings";
 import { useLocalizedPath } from "@/hooks/useLocalizedPath";
+import { getIconComponent } from "@/lib/iconMap";
+
+// Default "Why Us" items when DB is empty
+const DEFAULT_WHY_US_ITEMS: WhyUsItem[] = [
+  { id: "1", icon: "award", title: { en: "20+ Years Experience", ru: "20+ лет опыта", ka: "20+ წლის გამოცდილება" }, description: { en: "Trusted expertise since 2003", ru: "Проверенный опыт с 2003 года", ka: "სანდო გამოცდილება 2003 წლიდან" } },
+  { id: "2", icon: "globe", title: { en: "Worldwide Destinations", ru: "Направления по всему миру", ka: "მსოფლიო მიმართულებები" }, description: { en: "Travel anywhere in the world", ru: "Путешествуйте куда угодно", ka: "იმოგზაურეთ მსოფლიოს ნებისმიერ წერტილში" } },
+  { id: "3", icon: "ship", title: { en: "Cruise Experts", ru: "Эксперты по круизам", ka: "საკრუიზო ექსპერტები" }, description: { en: "Specialized in cruise travel", ru: "Специализация на круизах", ka: "სპეციალიზაცია საკრუიზო მოგზაურობაში" } },
+  { id: "4", icon: "headphones", title: { en: "24/7 Support", ru: "Поддержка 24/7", ka: "24/7 მხარდაჭერა" }, description: { en: "Always here to help you", ru: "Всегда готовы помочь", ka: "ყოველთვის მზად ვართ დასახმარებლად" } },
+];
 
 const Home = () => {
   const { t, language } = useLanguage();
   const lp = useLocalizedPath();
-  const { containerRef: servicesRef, visibleItems: servicesVisible } = useStaggerReveal(3);
-  const { containerRef: whyUsRef, visibleItems: whyUsVisible } = useStaggerReveal(4);
-
   const { data: latestOffers, isLoading: offersLoading } = useLatestOffers(3);
   const { data: settings } = useSiteSettings();
 
-  // Use stagger reveal for offers only when data is ready
-  const offersReady = !offersLoading && latestOffers && latestOffers.length > 0;
-  const { containerRef: offersRef, visibleItems: offersVisible } = useStaggerReveal(
-    latestOffers?.length || 0,
-    { ready: offersReady }
-  );
-
-  // Get content from site_content with fallback to translation keys
   const content = settings?.site_content;
+  
+  // Get content from site_content with fallback to translation keys
   const heroTitle = getContentField(content, "home.heroTitle", language) || t("hero.title");
   const heroSubtitle = getContentField(content, "home.heroSubtitle", language) || t("hero.subtitle");
   const heroBgUrl = getContentField(content, "home.heroBgImageUrl", language) || "https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1920&q=80";
@@ -36,11 +36,23 @@ const Home = () => {
   const latestOffersTitle = getContentField(content, "home.latestOffersTitle", language) || t("latestOffers.title");
   const contactTitle = getContentField(content, "home.contactTitle", language) || t("contact.title");
 
+  // Get Why Us items from DB or use defaults
+  const dbWhyUsItems = getContentArray<WhyUsItem>(content, "home.whyUsItems");
+  const whyUsItems = dbWhyUsItems.length > 0 ? dbWhyUsItems : DEFAULT_WHY_US_ITEMS;
+
+  const { containerRef: servicesRef, visibleItems: servicesVisible } = useStaggerReveal(3);
+  const { containerRef: whyUsRef, visibleItems: whyUsVisible } = useStaggerReveal(whyUsItems.length);
+
+  const offersReady = !offersLoading && latestOffers && latestOffers.length > 0;
+  const { containerRef: offersRef, visibleItems: offersVisible } = useStaggerReveal(
+    latestOffers?.length || 0,
+    { ready: offersReady }
+  );
+
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
-        {/* Background Image */}
         <div className="absolute inset-0 image-placeholder bg-gradient-to-br from-primary/90 to-primary/70">
           <div 
             className="absolute inset-0 bg-cover bg-center opacity-30" 
@@ -73,7 +85,6 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Decorative Gold Accent */}
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gold" />
       </section>
 
@@ -162,7 +173,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Why Us Section */}
+      {/* Why Us Section - Now Dynamic */}
       <section className="section-padding bg-secondary">
         <div className="container-custom">
           <RevealSection>
@@ -171,66 +182,32 @@ const Home = () => {
             </h2>
           </RevealSection>
 
-          <div ref={whyUsRef as React.RefObject<HTMLDivElement>} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Experience */}
-            <div
-              className="text-center transition-all duration-500 ease-out"
-              style={{
-                opacity: whyUsVisible[0] ? 1 : 0,
-                transform: whyUsVisible[0] ? "translateY(0)" : "translateY(30px)",
-              }}
-            >
-              <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gold/20 flex items-center justify-center transition-transform duration-300 hover:scale-110">
-                <Award className="w-7 h-7 text-gold" />
-              </div>
-              <h3 className="font-semibold mb-2">{t("whyUs.experience.title")}</h3>
-              <p className="text-sm text-muted-foreground">{t("whyUs.experience.description")}</p>
-            </div>
-
-            {/* Worldwide */}
-            <div
-              className="text-center transition-all duration-500 ease-out"
-              style={{
-                opacity: whyUsVisible[1] ? 1 : 0,
-                transform: whyUsVisible[1] ? "translateY(0)" : "translateY(30px)",
-              }}
-            >
-              <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gold/20 flex items-center justify-center transition-transform duration-300 hover:scale-110">
-                <Globe className="w-7 h-7 text-gold" />
-              </div>
-              <h3 className="font-semibold mb-2">{t("whyUs.worldwide.title")}</h3>
-              <p className="text-sm text-muted-foreground">{t("whyUs.worldwide.description")}</p>
-            </div>
-
-            {/* Cruises Expert */}
-            <div
-              className="text-center transition-all duration-500 ease-out"
-              style={{
-                opacity: whyUsVisible[2] ? 1 : 0,
-                transform: whyUsVisible[2] ? "translateY(0)" : "translateY(30px)",
-              }}
-            >
-              <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gold/20 flex items-center justify-center transition-transform duration-300 hover:scale-110">
-                <Ship className="w-7 h-7 text-gold" />
-              </div>
-              <h3 className="font-semibold mb-2">{t("whyUs.cruises.title")}</h3>
-              <p className="text-sm text-muted-foreground">{t("whyUs.cruises.description")}</p>
-            </div>
-
-            {/* Support */}
-            <div
-              className="text-center transition-all duration-500 ease-out"
-              style={{
-                opacity: whyUsVisible[3] ? 1 : 0,
-                transform: whyUsVisible[3] ? "translateY(0)" : "translateY(30px)",
-              }}
-            >
-              <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gold/20 flex items-center justify-center transition-transform duration-300 hover:scale-110">
-                <Headphones className="w-7 h-7 text-gold" />
-              </div>
-              <h3 className="font-semibold mb-2">{t("whyUs.support.title")}</h3>
-              <p className="text-sm text-muted-foreground">{t("whyUs.support.description")}</p>
-            </div>
+          <div 
+            ref={whyUsRef as React.RefObject<HTMLDivElement>} 
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
+          >
+            {whyUsItems.map((item, index) => {
+              const Icon = getIconComponent(item.icon);
+              const title = item.title[language as keyof typeof item.title] || item.title.en || "";
+              const description = item.description[language as keyof typeof item.description] || item.description.en || "";
+              
+              return (
+                <div
+                  key={item.id}
+                  className="text-center transition-all duration-500 ease-out"
+                  style={{
+                    opacity: whyUsVisible[index] ? 1 : 0,
+                    transform: whyUsVisible[index] ? "translateY(0)" : "translateY(30px)",
+                  }}
+                >
+                  <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gold/20 flex items-center justify-center transition-transform duration-300 hover:scale-110">
+                    <Icon className="w-7 h-7 text-gold" />
+                  </div>
+                  <h3 className="font-semibold mb-2">{title}</h3>
+                  <p className="text-sm text-muted-foreground">{description}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -249,7 +226,6 @@ const Home = () => {
             </div>
           </RevealSection>
 
-          {/* Min height container to prevent layout shift */}
           <div className="min-h-[300px]">
             {offersLoading ? (
               <div className="flex items-center justify-center py-12">
@@ -321,7 +297,6 @@ const Home = () => {
               </h2>
               
               <div className="space-y-6">
-                {/* All Phones */}
                 {settings?.phones && settings.phones.length > 0 && (
                   <div className="group">
                     <h4 className="font-semibold mb-1">{t("contact.phone")}</h4>
@@ -370,23 +345,22 @@ const Home = () => {
               </div>
             </RevealSection>
 
-            {/* Map */}
-            <RevealSection direction="right" delay={200}>
-              <div className="aspect-[4/3] lg:aspect-auto rounded-lg overflow-hidden bg-muted min-h-[300px]">
+            <RevealSection direction="right" delay={100}>
+              <div className="h-full min-h-[300px] rounded-xl overflow-hidden image-placeholder">
                 {settings?.map_embed_url ? (
                   <iframe
                     src={settings.map_embed_url}
                     width="100%"
                     height="100%"
-                    style={{ border: 0 }}
+                    style={{ border: 0, minHeight: "300px" }}
                     allowFullScreen
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                     title="Office Location"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                    Map will be embedded here
+                  <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground">
+                    Map not configured
                   </div>
                 )}
               </div>

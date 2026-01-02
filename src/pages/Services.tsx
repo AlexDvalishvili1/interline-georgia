@@ -1,7 +1,48 @@
-import { Map, Plane, Ship, CheckCircle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { RevealSection } from "@/components/animations";
-import { useSiteSettings, getContentField } from "@/hooks/useSiteSettings";
+import { useSiteSettings, getContentField, getContentArray, type ServiceItem } from "@/hooks/useSiteSettings";
+import { getIconComponent } from "@/lib/iconMap";
+
+// Default service items when DB is empty
+const DEFAULT_SERVICES: ServiceItem[] = [
+  {
+    id: "1",
+    icon: "map",
+    imageUrl: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80",
+    title: { en: "Tours & Excursions", ru: "Туры и экскурсии", ka: "ტურები და ექსკურსიები" },
+    description: { en: "Explore destinations worldwide with our expertly curated tours.", ru: "Исследуйте направления по всему миру с нашими турами.", ka: "გამოიკვლიეთ მიმართულებები მთელ მსოფლიოში." },
+    features: [
+      { en: "Guided group tours", ru: "Групповые туры с гидом", ka: "გიდიანი ჯგუფური ტურები" },
+      { en: "Private custom tours", ru: "Индивидуальные туры", ka: "პირადი ტურები" },
+      { en: "Adventure travel", ru: "Приключенческие путешествия", ka: "სათავგადასავლო მოგზაურობა" },
+    ],
+  },
+  {
+    id: "2",
+    icon: "plane",
+    imageUrl: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80",
+    title: { en: "Air Tickets", ru: "Авиабилеты", ka: "ავიაბილეთები" },
+    description: { en: "Best deals on flights to any destination worldwide.", ru: "Лучшие предложения на авиабилеты.", ka: "საუკეთესო შეთავაზებები ფრენებზე." },
+    features: [
+      { en: "Competitive prices", ru: "Конкурентные цены", ka: "კონკურენტული ფასები" },
+      { en: "All major airlines", ru: "Все крупные авиакомпании", ka: "ყველა მთავარი ავიაკომპანია" },
+      { en: "Flexible booking", ru: "Гибкое бронирование", ka: "მოქნილი დაჯავშნა" },
+    ],
+  },
+  {
+    id: "3",
+    icon: "ship",
+    imageUrl: "https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&q=80",
+    title: { en: "Cruises", ru: "Круизы", ka: "კრუიზები" },
+    description: { en: "Luxury cruise experiences on the world's best ships.", ru: "Роскошные круизы на лучших лайнерах мира.", ka: "ფუფუნების კრუიზები საუკეთესო გემებზე." },
+    features: [
+      { en: "All cruise lines", ru: "Все круизные линии", ka: "ყველა საკრუიზო ხაზი" },
+      { en: "River cruises", ru: "Речные круизы", ka: "მდინარის კრუიზები" },
+      { en: "Expedition cruises", ru: "Экспедиционные круизы", ka: "საექსპედიციო კრუიზები" },
+    ],
+  },
+];
 
 const Services = () => {
   const { t, language } = useLanguage();
@@ -18,44 +59,9 @@ const Services = () => {
   const phone = settings?.phones?.[0] || settings?.phone || "+995 32 200 00 00";
   const email = settings?.emails?.[0] || settings?.email || "info@interline.ge";
 
-  const services = [
-    {
-      icon: Map,
-      titleKey: "servicesPage.tours.title",
-      descriptionKey: "servicesPage.tours.description",
-      features: [
-        "servicesPage.tours.feature1",
-        "servicesPage.tours.feature2",
-        "servicesPage.tours.feature3",
-      ],
-      image: getContentField(content, "services.tours.imageUrl", language) || "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80",
-      contentPath: "services.tours",
-    },
-    {
-      icon: Plane,
-      titleKey: "servicesPage.tickets.title",
-      descriptionKey: "servicesPage.tickets.description",
-      features: [
-        "servicesPage.tickets.feature1",
-        "servicesPage.tickets.feature2",
-        "servicesPage.tickets.feature3",
-      ],
-      image: getContentField(content, "services.tickets.imageUrl", language) || "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80",
-      contentPath: "services.tickets",
-    },
-    {
-      icon: Ship,
-      titleKey: "servicesPage.cruises.title",
-      descriptionKey: "servicesPage.cruises.description",
-      features: [
-        "servicesPage.cruises.feature1",
-        "servicesPage.cruises.feature2",
-        "servicesPage.cruises.feature3",
-      ],
-      image: getContentField(content, "services.cruises.imageUrl", language) || "https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&q=80",
-      contentPath: "services.cruises",
-    },
-  ];
+  // Get service items from DB or use defaults
+  const dbServices = getContentArray<ServiceItem>(content, "services.items");
+  const services = dbServices.length > 0 ? dbServices : DEFAULT_SERVICES;
 
   return (
     <div className="flex flex-col">
@@ -81,13 +87,14 @@ const Services = () => {
         <div className="container-custom">
           <div className="space-y-20">
             {services.map((service, index) => {
-              // Try to get content from DB first, fallback to translation keys
-              const title = getContentField(content, `${service.contentPath}.title`, language) || t(service.titleKey);
-              const description = getContentField(content, `${service.contentPath}.description`, language) || t(service.descriptionKey);
+              const Icon = getIconComponent(service.icon);
+              const title = service.title[language as keyof typeof service.title] || service.title.en || "";
+              const description = service.description[language as keyof typeof service.description] || service.description.en || "";
+              const features = service.features || [];
               
               return (
                 <div
-                  key={service.titleKey}
+                  key={service.id}
                   className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center ${
                     index % 2 === 1 ? "lg:flex-row-reverse" : ""
                   }`}
@@ -99,7 +106,7 @@ const Services = () => {
                   >
                     <div className="aspect-[4/3] rounded-xl overflow-hidden image-placeholder group">
                       <img
-                        src={service.image}
+                        src={service.imageUrl || "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80"}
                         alt={title}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
@@ -114,7 +121,7 @@ const Services = () => {
                   >
                     <div className="flex items-center gap-4 mb-6">
                       <div className="w-14 h-14 rounded-full bg-accent/10 flex items-center justify-center transition-transform duration-300 hover:scale-110">
-                        <service.icon className="w-7 h-7 text-accent" />
+                        <Icon className="w-7 h-7 text-accent" />
                       </div>
                       <h2 className="text-3xl font-heading font-bold">
                         {title}
@@ -125,18 +132,23 @@ const Services = () => {
                       {description}
                     </p>
 
-                    <ul className="space-y-3">
-                      {service.features.map((feature, featureIndex) => (
-                        <li 
-                          key={feature} 
-                          className="flex items-center gap-3 transition-all duration-300 hover:translate-x-1"
-                          style={{ transitionDelay: `${featureIndex * 50}ms` }}
-                        >
-                          <CheckCircle className="w-5 h-5 text-accent flex-shrink-0" />
-                          <span>{t(feature)}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    {features.length > 0 && (
+                      <ul className="space-y-3">
+                        {features.map((feature, featureIndex) => {
+                          const featureText = feature[language as keyof typeof feature] || feature.en || "";
+                          return (
+                            <li 
+                              key={featureIndex} 
+                              className="flex items-center gap-3 transition-all duration-300 hover:translate-x-1"
+                              style={{ transitionDelay: `${featureIndex * 50}ms` }}
+                            >
+                              <CheckCircle className="w-5 h-5 text-accent flex-shrink-0" />
+                              <span>{featureText}</span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
                   </RevealSection>
                 </div>
               );
