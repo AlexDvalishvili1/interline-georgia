@@ -7,6 +7,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Layout } from "@/components/layout/Layout";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { LocaleWrapper } from "@/components/LocaleWrapper";
 import Home from "./pages/Home";
 import Offers from "./pages/Offers";
 import OfferDetail from "./pages/OfferDetail";
@@ -31,18 +32,28 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Layout><Home /></Layout>} />
-              <Route path="/offers" element={<Layout><Offers /></Layout>} />
-              <Route path="/offers/:slug" element={<Layout><OfferDetail /></Layout>} />
-              <Route path="/services" element={<Layout><Services /></Layout>} />
-              <Route path="/about" element={<Layout><About /></Layout>} />
-              <Route path="/contacts" element={<Layout><Contacts /></Layout>} />
+              {/* Root redirect to default locale */}
+              <Route path="/" element={<Navigate to="/ge" replace />} />
+              
+              {/* Locale-prefixed public routes */}
+              <Route path="/:locale" element={<LocaleWrapper />}>
+                <Route index element={<Layout><Home /></Layout>} />
+                <Route path="offers" element={<Layout><Offers /></Layout>} />
+                <Route path="offers/:slug" element={<Layout><OfferDetail /></Layout>} />
+                <Route path="services" element={<Layout><Services /></Layout>} />
+                <Route path="about" element={<Layout><About /></Layout>} />
+                <Route path="contacts" element={<Layout><Contacts /></Layout>} />
+              </Route>
+              
+              {/* Admin routes (no locale prefix) */}
               <Route path="/admin/auth" element={<Auth />} />
               <Route path="/auth" element={<Navigate to="/admin/auth" replace />} />
               <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
               <Route path="/admin/posts" element={<AdminLayout><AdminPosts /></AdminLayout>} />
               <Route path="/admin/posts/:id" element={<AdminLayout><PostEditor /></AdminLayout>} />
               <Route path="/admin/settings" element={<AdminLayout><AdminSettings /></AdminLayout>} />
+              
+              {/* 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

@@ -174,7 +174,9 @@ export const useSiteSettings = () => {
 
       return null;
     },
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 0, // Always consider data stale - fixes caching issue
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 };
 
@@ -184,14 +186,27 @@ export const useUpdateSiteSettings = () => {
 
   return useMutation({
     mutationFn: async (settings: Partial<SiteSettings> & { id: string }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("site_settings")
         .update(settings as any)
-        .eq("id", settings.id);
+        .eq("id", settings.id)
+        .select()
+        .single();
 
       if (error) throw error;
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Use actual returned data from Supabase (includes updated_at)
+      const updatedSettings = {
+        ...data,
+        phones: (data.phones as string[]) || [],
+        emails: (data.emails as string[]) || [],
+        logo_url: (data as any).logo_url || null,
+        site_content: ((data as any).site_content as SiteContent) || {},
+      } as SiteSettings;
+      
+      queryClient.setQueryData(["site_settings"], updatedSettings);
       queryClient.invalidateQueries({ queryKey: ["site_settings"] });
     },
   });

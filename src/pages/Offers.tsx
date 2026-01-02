@@ -8,9 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RevealSection } from "@/components/animations";
 import { useStaggerReveal } from "@/hooks/useRevealOnScroll";
 import { usePosts, getLocalizedField, type Post } from "@/hooks/usePosts";
+import { useLocalizedPath } from "@/hooks/useLocalizedPath";
 
 const Offers = () => {
   const { t, language } = useLanguage();
+  const lp = useLocalizedPath();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("offers");
 
@@ -72,13 +74,13 @@ const Offers = () => {
               </div>
 
               <TabsContent value="offers" className="mt-0">
-                <PostGrid posts={posts} language={language} t={t} isLoading={isLoading} />
+                <PostGrid posts={posts} language={language} t={t} isLoading={isLoading} lp={lp} />
               </TabsContent>
               <TabsContent value="promotions" className="mt-0">
-                <PostGrid posts={posts} language={language} t={t} isLoading={isLoading} />
+                <PostGrid posts={posts} language={language} t={t} isLoading={isLoading} lp={lp} />
               </TabsContent>
               <TabsContent value="news" className="mt-0">
-                <PostGrid posts={posts} language={language} t={t} isLoading={isLoading} />
+                <PostGrid posts={posts} language={language} t={t} isLoading={isLoading} lp={lp} />
               </TabsContent>
             </Tabs>
           </RevealSection>
@@ -93,9 +95,10 @@ interface PostGridProps {
   language: string;
   t: (key: string) => string;
   isLoading: boolean;
+  lp: (path: string) => string;
 }
 
-const PostGrid = ({ posts, language, t, isLoading }: PostGridProps) => {
+const PostGrid = ({ posts, language, t, isLoading, lp }: PostGridProps) => {
   const { containerRef, visibleItems } = useStaggerReveal(posts?.length || 0);
 
   if (isLoading) {
@@ -125,7 +128,7 @@ const PostGrid = ({ posts, language, t, isLoading }: PostGridProps) => {
             transform: visibleItems[index] ? "translateY(0)" : "translateY(30px)",
           }}
         >
-          <Link to={`/offers/${post.slug}`}>
+          <Link to={lp(`/offers/${post.slug}`)}>
             <Card className="overflow-hidden hover-lift h-full group">
               <div className="aspect-[16/10] overflow-hidden bg-muted">
                 {post.cover_image_url ? (

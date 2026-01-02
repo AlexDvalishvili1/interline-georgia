@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, Facebook, Instagram } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSiteSettings, getLocalizedSettingsField, getContentField } from "@/hooks/useSiteSettings";
+import { useLocalizedPath } from "@/hooks/useLocalizedPath";
 
 // TikTok icon component
 const TikTokIcon = ({ size = 20 }: { size?: number }) => (
@@ -13,6 +14,7 @@ const TikTokIcon = ({ size = 20 }: { size?: number }) => (
 export const Footer = () => {
   const { t, language } = useLanguage();
   const { data: settings } = useSiteSettings();
+  const lp = useLocalizedPath();
   const currentYear = new Date().getFullYear();
 
   const companyName = getLocalizedSettingsField(settings, "company_name", language) || "Interline Georgia";
@@ -50,7 +52,7 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}
           <div>
-            <Link to="/" className="inline-flex items-center gap-3 mb-4">
+            <Link to={lp("/")} className="inline-flex items-center gap-3 mb-4">
               {settings?.logo_url && (
                 <img 
                   src={settings.logo_url} 
@@ -74,16 +76,16 @@ export const Footer = () => {
           <div>
             <h4 className="font-heading font-semibold mb-4">{quickLinksTitle}</h4>
             <nav className="flex flex-col gap-2">
-              <Link to="/offers" className="text-sm opacity-80 hover:opacity-100 transition-opacity">
+              <Link to={lp("/offers")} className="text-sm opacity-80 hover:opacity-100 transition-opacity">
                 {t("nav.offers")}
               </Link>
-              <Link to="/services" className="text-sm opacity-80 hover:opacity-100 transition-opacity">
+              <Link to={lp("/services")} className="text-sm opacity-80 hover:opacity-100 transition-opacity">
                 {t("nav.services")}
               </Link>
-              <Link to="/about" className="text-sm opacity-80 hover:opacity-100 transition-opacity">
+              <Link to={lp("/about")} className="text-sm opacity-80 hover:opacity-100 transition-opacity">
                 {t("nav.about")}
               </Link>
-              <Link to="/contacts" className="text-sm opacity-80 hover:opacity-100 transition-opacity">
+              <Link to={lp("/contacts")} className="text-sm opacity-80 hover:opacity-100 transition-opacity">
                 {t("nav.contacts")}
               </Link>
             </nav>
@@ -145,9 +147,17 @@ export const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="mt-12 pt-6 border-t border-primary-foreground/10">
-          <p className="text-sm text-center opacity-70">
-            © {currentYear} {companyName}. {rightsText}.
-          </p>
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
+            <p className="text-sm opacity-70">
+              © {currentYear} {companyName}. {rightsText}.
+            </p>
+            {/* Debug: show updated_at */}
+            {settings?.updated_at && (
+              <p className="text-xs opacity-50">
+                DB: {new Date(settings.updated_at).toLocaleString()}
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </footer>

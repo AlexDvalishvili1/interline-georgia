@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useSiteSettings, getLocalizedSettingsField } from "@/hooks/useSiteSettings";
+import { useLocalizedPath } from "@/hooks/useLocalizedPath";
 import { cn } from "@/lib/utils";
 import logoSvg from "@/assets/logo.svg";
 
@@ -12,21 +13,24 @@ export const Header = () => {
   const { t, language } = useLanguage();
   const { data: settings } = useSiteSettings();
   const location = useLocation();
+  const lp = useLocalizedPath();
 
   const companyName = getLocalizedSettingsField(settings, "company_name", language) || "Interline Georgia";
   const logoUrl = settings?.logo_url || logoSvg;
 
   const navLinks = [
-    { href: "/", label: t("nav.home") },
-    { href: "/offers", label: t("nav.offers") },
-    { href: "/services", label: t("nav.services") },
-    { href: "/about", label: t("nav.about") },
-    { href: "/contacts", label: t("nav.contacts") },
+    { href: lp("/"), label: t("nav.home"), match: "" },
+    { href: lp("/offers"), label: t("nav.offers"), match: "/offers" },
+    { href: lp("/services"), label: t("nav.services"), match: "/services" },
+    { href: lp("/about"), label: t("nav.about"), match: "/about" },
+    { href: lp("/contacts"), label: t("nav.contacts"), match: "/contacts" },
   ];
 
-  const isActive = (href: string) => {
-    if (href === "/") return location.pathname === "/";
-    return location.pathname.startsWith(href);
+  const isActive = (match: string) => {
+    // Extract path after locale
+    const pathAfterLocale = location.pathname.replace(/^\/(ge|ru|en)/, "");
+    if (match === "") return pathAfterLocale === "" || pathAfterLocale === "/";
+    return pathAfterLocale.startsWith(match);
   };
 
   return (
@@ -34,7 +38,7 @@ export const Header = () => {
       <div className="container-custom">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3">
+          <Link to={lp("/")} className="flex items-center gap-3">
             <img 
               src={logoUrl} 
               alt="Logo" 
@@ -58,7 +62,7 @@ export const Header = () => {
                 to={link.href}
                 className={cn(
                   "text-sm font-medium transition-colors hover:text-accent",
-                  isActive(link.href)
+                  isActive(link.match)
                     ? "text-accent"
                     : "text-muted-foreground"
                 )}
@@ -94,7 +98,7 @@ export const Header = () => {
                   onClick={() => setIsMenuOpen(false)}
                   className={cn(
                     "text-base font-medium transition-colors py-2",
-                    isActive(link.href)
+                    isActive(link.match)
                       ? "text-accent"
                       : "text-muted-foreground hover:text-accent"
                   )}

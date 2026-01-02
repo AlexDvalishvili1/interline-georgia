@@ -7,9 +7,11 @@ import { RevealSection } from "@/components/animations";
 import { useStaggerReveal } from "@/hooks/useRevealOnScroll";
 import { useLatestOffers, getLocalizedField } from "@/hooks/usePosts";
 import { useSiteSettings, getLocalizedSettingsField, getContentField } from "@/hooks/useSiteSettings";
+import { useLocalizedPath } from "@/hooks/useLocalizedPath";
 
 const Home = () => {
   const { t, language } = useLanguage();
+  const lp = useLocalizedPath();
   const { containerRef: servicesRef, visibleItems: servicesVisible } = useStaggerReveal(3);
   const { containerRef: whyUsRef, visibleItems: whyUsVisible } = useStaggerReveal(4);
 
@@ -61,10 +63,10 @@ const Home = () => {
             <RevealSection delay={200}>
               <div className="flex flex-wrap justify-center gap-4">
                 <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                  <Link to="/offers">{t("hero.viewOffers")}</Link>
+                  <Link to={lp("/offers")}>{t("hero.viewOffers")}</Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="border-primary-foreground bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 transition-all duration-300 hover:scale-105">
-                  <Link to="/contacts">{t("hero.contacts")}</Link>
+                  <Link to={lp("/contacts")}>{t("hero.contacts")}</Link>
                 </Button>
               </div>
             </RevealSection>
@@ -242,7 +244,7 @@ const Home = () => {
                 {latestOffersTitle}
               </h2>
               <Button asChild variant="outline" className="transition-all duration-300 hover:scale-105">
-                <Link to="/offers">{t("latestOffers.viewAll")}</Link>
+                <Link to={lp("/offers")}>{t("latestOffers.viewAll")}</Link>
               </Button>
             </div>
           </RevealSection>
@@ -264,7 +266,7 @@ const Home = () => {
                       transform: offersVisible[index] ? "translateY(0)" : "translateY(30px)",
                     }}
                   >
-                    <Link to={`/offers/${post.slug}`}>
+                    <Link to={lp(`/offers/${post.slug}`)}>
                       <Card className="overflow-hidden hover-lift group cursor-pointer h-full">
                         <div className="aspect-[16/10] overflow-hidden bg-muted">
                           {post.cover_image_url ? (

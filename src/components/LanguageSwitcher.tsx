@@ -1,22 +1,31 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useLanguage, Language } from "@/contexts/LanguageContext";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { languageToUrlLocale, type UrlLocale } from "@/hooks/useLocalizedPath";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const languages: { code: Language; label: string; flag: string; shortCode: string }[] = [
-  { code: "ka", label: "ქართული", flag: "🇬🇪", shortCode: "KA" },
-  { code: "ru", label: "Русский", flag: "🇷🇺", shortCode: "RU" },
-  { code: "en", label: "English", flag: "🇬🇧", shortCode: "EN" },
+// URL locale codes for display
+const languages: { urlCode: UrlLocale; label: string; flag: string; shortCode: string }[] = [
+  { urlCode: "ge", label: "ქართული", flag: "🇬🇪", shortCode: "GE" },
+  { urlCode: "ru", label: "Русский", flag: "🇷🇺", shortCode: "RU" },
+  { urlCode: "en", label: "English", flag: "🇬🇧", shortCode: "EN" },
 ];
 
 export const LanguageSwitcher = () => {
-  const { language, setLanguage } = useLanguage();
+  const { language } = useLanguage();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { locale } = useParams<{ locale: string }>();
+  
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [focusedIndex, setFocusedIndex] = useState(-1);
 
-  const currentLang = languages.find((l) => l.code === language) || languages[2];
+  // Get current URL locale
+  const currentUrlLocale = locale || languageToUrlLocale(language);
+  const currentLang = languages.find((l) => l.urlCode === currentUrlLocale) || languages[0];
 
   // Close on outside click
   useEffect(() => {
@@ -73,10 +82,7 @@ export const LanguageSwitcher = () => {
         case " ":
           event.preventDefault();
           if (focusedIndex >= 0) {
-            setLanguage(languages[focusedIndex].code);
-            setIsOpen(false);
-            setFocusedIndex(-1);
-            buttonRef.current?.focus();
+            handleSelect(languages[focusedIndex].urlCode);
           }
           break;
         case "Tab":
@@ -85,11 +91,17 @@ export const LanguageSwitcher = () => {
           break;
       }
     },
-    [isOpen, focusedIndex, setLanguage]
+    [isOpen, focusedIndex]
   );
 
-  const handleSelect = (code: Language) => {
-    setLanguage(code);
+  const handleSelect = (newUrlLocale: UrlLocale) => {
+    // Get the path after the current locale (preserving the entire path including slugs)
+    // Replace only the first segment (the locale) in the pathname
+    const pathWithoutLocale = location.pathname.replace(/^\/(ge|ru|en)/, "") || "";
+    
+    // Navigate to the new locale with the preserved path
+    navigate(`/${newUrlLocale}${pathWithoutLocale}${location.search}`);
+    
     setIsOpen(false);
     setFocusedIndex(-1);
   };
@@ -136,18 +148,18 @@ export const LanguageSwitcher = () => {
       >
         {languages.map((lang, index) => (
           <button
-            key={lang.code}
-            onClick={() => handleSelect(lang.code)}
+            key={lang.urlCode}
+            onClick={() => handleSelect(lang.urlCode)}
             className={cn(
               "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150",
               "focus:outline-none",
-              language === lang.code
+              currentUrlLocale === lang.urlCode
                 ? "bg-accent/10 text-accent"
                 : "text-foreground hover:bg-muted",
               focusedIndex === index && "bg-muted"
             )}
             role="option"
-            aria-selected={language === lang.code}
+            aria-selected={currentUrlLocale === lang.urlCode}
             tabIndex={-1}
           >
             <span className="text-base" aria-hidden="true">{lang.flag}</span>
