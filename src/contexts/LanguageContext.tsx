@@ -23,19 +23,18 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const [language, setLanguageState] = useState<Language>(() => {
-    const stored = localStorage.getItem("interline-language");
-    return (stored as Language) || "ka";
-  });
+  // Initialize with ka (Georgian) as default - URL will override this via LocaleWrapper
+  const [language, setLanguageState] = useState<Language>("ka");
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
+    // Still store in localStorage for initial page load before URL is parsed
     localStorage.setItem("interline-language", lang);
-    document.documentElement.lang = lang;
+    document.documentElement.lang = lang === "ka" ? "ge" : lang;
   };
 
   useEffect(() => {
-    document.documentElement.lang = language;
+    document.documentElement.lang = language === "ka" ? "ge" : language;
   }, [language]);
 
   const t = (key: string): string => {
@@ -388,23 +387,23 @@ const translations = {
       subtitle: "Full range of tourism services",
       tours: {
         title: "Tours",
-        description: "We offer travel to the most interesting destinations in the world. Individual tours according to your wishes or group travel - you choose, we deliver.",
+        description: "We offer travel to the most interesting destinations in the world. Individual tours tailored to your wishes or group travel - you choose, we deliver.",
         feature1: "Individual Tours",
         feature2: "Group Travel",
         feature3: "VIP Service",
       },
       tickets: {
         title: "Air Tickets",
-        description: "Fast and convenient booking of air tickets to all destinations worldwide. Cooperation with all leading airlines at the best prices.",
+        description: "Fast and convenient flight booking to all destinations worldwide. Cooperation with all leading airlines at the best prices.",
         feature1: "Online Booking",
         feature2: "Best Prices",
         feature3: "All Airlines",
       },
       cruises: {
         title: "Cruises",
-        description: "Dream travel across seas and oceans. More than 5000 routes in cooperation with the best cruise companies in the world.",
+        description: "Dream voyage across seas and oceans. Over 5000 routes in cooperation with the world's best cruise companies.",
         feature1: "5000+ Routes",
-        feature2: "Luxury Ships",
+        feature2: "Luxury Liners",
         feature3: "Exclusive Offers",
       },
     },

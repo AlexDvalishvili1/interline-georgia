@@ -8,10 +8,12 @@ import { useStaggerReveal } from "@/hooks/useRevealOnScroll";
 import { usePost, getLocalizedField } from "@/hooks/usePosts";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
+import { useLocalizedPath } from "@/hooks/useLocalizedPath";
 
 const OfferDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const { t, language } = useLanguage();
+  const lp = useLocalizedPath();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
@@ -32,7 +34,7 @@ const OfferDetail = () => {
       <div className="min-h-[50vh] flex flex-col items-center justify-center">
         <h1 className="text-2xl font-heading font-bold mb-4">Post not found</h1>
         <Button asChild className="transition-all duration-300 hover:scale-105">
-          <Link to="/offers">
+          <Link to={lp("/offers")}>
             <ArrowLeft className="mr-2" size={16} />
             {t("offers.title")}
           </Link>
@@ -78,7 +80,7 @@ const OfferDetail = () => {
           <div className="container-custom pb-12">
             <RevealSection>
               <Link
-                to="/offers"
+                to={lp("/offers")}
                 className="inline-flex items-center gap-2 text-primary-foreground/80 hover:text-primary-foreground mb-4 transition-all duration-300 hover:-translate-x-1"
               >
                 <ArrowLeft size={16} />

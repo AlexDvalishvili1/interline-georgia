@@ -289,13 +289,13 @@ const AdminSettings = () => {
           <Card>
             <CardHeader><CardTitle>Hero Section</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <LocalizedInput label="Hero Title" path={["home", "hero", "title"]} />
-              <LocalizedInput label="Hero Subtitle" path={["home", "hero", "subtitle"]} multiline />
+              <LocalizedInput label="Hero Title" path={["home", "heroTitle"]} />
+              <LocalizedInput label="Hero Subtitle" path={["home", "heroSubtitle"]} multiline />
               <div className="space-y-2">
                 <Label>Hero Background Image</Label>
                 <ImageUploader
-                  value={getContent(["home", "hero", "backgroundImage"]) || ""}
-                  onChange={(url) => updateContent(["home", "hero", "backgroundImage"], url)}
+                  value={getContent(["home", "heroBgImageUrl"]) || ""}
+                  onChange={(url) => updateContent(["home", "heroBgImageUrl"], url)}
                   label="Background Image"
                   bucket="post-images"
                 />
@@ -306,23 +306,23 @@ const AdminSettings = () => {
           <Card>
             <CardHeader><CardTitle>Services Section</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <LocalizedInput label="Section Title" path={["home", "services", "title"]} />
-              <LocalizedInput label="Section Subtitle" path={["home", "services", "subtitle"]} />
+              <LocalizedInput label="Section Title" path={["home", "servicesTitle"]} />
+              <LocalizedInput label="Section Subtitle" path={["home", "servicesSubtitle"]} />
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader><CardTitle>Why Us Section</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <LocalizedInput label="Section Title" path={["home", "whyUs", "title"]} />
+              <LocalizedInput label="Section Title" path={["home", "whyUsTitle"]} />
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader><CardTitle>Latest Offers Section</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <LocalizedInput label="Section Title" path={["home", "latestOffers", "title"]} />
-              <LocalizedInput label="View All Button" path={["home", "latestOffers", "viewAll"]} />
+              <LocalizedInput label="Section Title" path={["home", "latestOffersTitle"]} />
+              <LocalizedInput label="Contact Title" path={["home", "contactTitle"]} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -332,8 +332,8 @@ const AdminSettings = () => {
           <Card>
             <CardHeader><CardTitle>Page Header</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <LocalizedInput label="Page Title" path={["services", "title"]} />
-              <LocalizedInput label="Page Subtitle" path={["services", "subtitle"]} multiline />
+              <LocalizedInput label="Page Title" path={["services", "pageTitle"]} />
+              <LocalizedInput label="Page Subtitle" path={["services", "pageSubtitle"]} multiline />
             </CardContent>
           </Card>
 
@@ -346,8 +346,8 @@ const AdminSettings = () => {
                 <div className="space-y-2">
                   <Label>Image</Label>
                   <ImageUploader
-                    value={getContent(["services", service, "image"]) || ""}
-                    onChange={(url) => updateContent(["services", service, "image"], url)}
+                    value={getContent(["services", service, "imageUrl"]) || ""}
+                    onChange={(url) => updateContent(["services", service, "imageUrl"], url)}
                     label={`${service} Image`}
                     bucket="post-images"
                   />
@@ -362,8 +362,8 @@ const AdminSettings = () => {
           <Card>
             <CardHeader><CardTitle>Page Header</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <LocalizedInput label="Page Title" path={["about", "title"]} />
-              <LocalizedInput label="Page Subtitle" path={["about", "subtitle"]} multiline />
+              <LocalizedInput label="Page Title" path={["about", "pageTitle"]} />
+              <LocalizedInput label="Page Subtitle" path={["about", "pageSubtitle"]} multiline />
             </CardContent>
           </Card>
 
@@ -396,8 +396,8 @@ const AdminSettings = () => {
           <Card>
             <CardHeader><CardTitle>Page Header</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <LocalizedInput label="Page Title" path={["contacts", "title"]} />
-              <LocalizedInput label="Page Subtitle" path={["contacts", "subtitle"]} multiline />
+              <LocalizedInput label="Page Title" path={["contacts", "pageTitle"]} />
+              <LocalizedInput label="Page Subtitle" path={["contacts", "pageSubtitle"]} multiline />
             </CardContent>
           </Card>
 
@@ -428,7 +428,7 @@ const AdminSettings = () => {
               <LocalizedInput label="Tagline" path={["footer", "tagline"]} multiline />
               <LocalizedInput label="Quick Links Title" path={["footer", "quickLinksTitle"]} />
               <LocalizedInput label="Contact Title" path={["footer", "contactTitle"]} />
-              <LocalizedInput label="Rights Text" path={["footer", "rights"]} />
+              <LocalizedInput label="Rights Text" path={["footer", "rightsText"]} />
             </CardContent>
           </Card>
         </TabsContent>
