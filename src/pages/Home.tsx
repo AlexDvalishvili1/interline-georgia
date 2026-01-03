@@ -6,16 +6,23 @@ import { Card, CardContent } from "@/components/ui/card";
 import { RevealSection } from "@/components/animations";
 import { useStaggerReveal } from "@/hooks/useRevealOnScroll";
 import { useLatestOffers, getLocalizedField } from "@/hooks/usePosts";
-import { useSiteSettings, getLocalizedSettingsField, getContentField, getContentArray, type WhyUsItem } from "@/hooks/useSiteSettings";
+import { useSiteSettings, getLocalizedSettingsField, getContentField, getContentArray, type WhyUsItem, type ServiceCardItem } from "@/hooks/useSiteSettings";
 import { useLocalizedPath } from "@/hooks/useLocalizedPath";
 import { getIconComponent } from "@/lib/iconMap";
 
-// Default "Why Us" items when DB is empty
+// Default "Why Us" items when DB is empty - will be seeded to DB
 const DEFAULT_WHY_US_ITEMS: WhyUsItem[] = [
   { id: "1", icon: "award", title: { en: "20+ Years Experience", ru: "20+ лет опыта", ka: "20+ წლის გამოცდილება" }, description: { en: "Trusted expertise since 2003", ru: "Проверенный опыт с 2003 года", ka: "სანდო გამოცდილება 2003 წლიდან" } },
   { id: "2", icon: "globe", title: { en: "Worldwide Destinations", ru: "Направления по всему миру", ka: "მსოფლიო მიმართულებები" }, description: { en: "Travel anywhere in the world", ru: "Путешествуйте куда угодно", ka: "იმოგზაურეთ მსოფლიოს ნებისმიერ წერტილში" } },
   { id: "3", icon: "ship", title: { en: "Cruise Experts", ru: "Эксперты по круизам", ka: "საკრუიზო ექსპერტები" }, description: { en: "Specialized in cruise travel", ru: "Специализация на круизах", ka: "სპეციალიზაცია საკრუიზო მოგზაურობაში" } },
   { id: "4", icon: "headphones", title: { en: "24/7 Support", ru: "Поддержка 24/7", ka: "24/7 მხარდაჭერა" }, description: { en: "Always here to help you", ru: "Всегда готовы помочь", ka: "ყოველთვის მზად ვართ დასახმარებლად" } },
+];
+
+// Default service cards for home page
+const DEFAULT_SERVICE_CARDS: ServiceCardItem[] = [
+  { id: "1", icon: "map", title: { en: "Tours", ru: "Туры", ka: "ტურები" }, description: { en: "Explore exciting destinations with our curated tour packages.", ru: "Исследуйте захватывающие направления с нашими турпакетами.", ka: "გამოიკვლიეთ საინტერესო მიმართულებები ჩვენი ტურპაკეტებით." } },
+  { id: "2", icon: "plane", title: { en: "Air Tickets", ru: "Авиабилеты", ka: "ავიაბილეთები" }, description: { en: "Best deals on flights worldwide.", ru: "Лучшие цены на авиабилеты.", ka: "საუკეთესო ფასები ავიაბილეთებზე." } },
+  { id: "3", icon: "ship", title: { en: "Cruises", ru: "Круизы", ka: "კრუიზები" }, description: { en: "Luxury cruise experiences on the world's best ships.", ru: "Роскошные круизы на лучших лайнерах.", ka: "ფუფუნების კრუიზები საუკეთესო გემებზე." } },
 ];
 
 const Home = () => {
@@ -36,11 +43,15 @@ const Home = () => {
   const latestOffersTitle = getContentField(content, "home.latestOffersTitle", language) || t("latestOffers.title");
   const contactTitle = getContentField(content, "home.contactTitle", language) || t("contact.title");
 
+  // Get service cards from DB or use defaults
+  const dbServiceCards = getContentArray<ServiceCardItem>(content, "home.serviceCards");
+  const serviceCards = dbServiceCards.length > 0 ? dbServiceCards : DEFAULT_SERVICE_CARDS;
+
   // Get Why Us items from DB or use defaults
   const dbWhyUsItems = getContentArray<WhyUsItem>(content, "home.whyUsItems");
   const whyUsItems = dbWhyUsItems.length > 0 ? dbWhyUsItems : DEFAULT_WHY_US_ITEMS;
 
-  const { containerRef: servicesRef, visibleItems: servicesVisible } = useStaggerReveal(3);
+  const { containerRef: servicesRef, visibleItems: servicesVisible } = useStaggerReveal(serviceCards.length);
   const { containerRef: whyUsRef, visibleItems: whyUsVisible } = useStaggerReveal(whyUsItems.length);
 
   const offersReady = !offersLoading && latestOffers && latestOffers.length > 0;
@@ -88,7 +99,7 @@ const Home = () => {
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gold" />
       </section>
 
-      {/* Services Section */}
+      {/* Services Section - Now Dynamic */}
       <section className="section-padding bg-background">
         <div className="container-custom">
           <RevealSection className="text-center mb-12">
@@ -101,74 +112,36 @@ const Home = () => {
           </RevealSection>
 
           <div ref={servicesRef as React.RefObject<HTMLDivElement>} className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Tours Card */}
-            <div
-              className="transition-all duration-500 ease-out"
-              style={{
-                opacity: servicesVisible[0] ? 1 : 0,
-                transform: servicesVisible[0] ? "translateY(0)" : "translateY(30px)",
-              }}
-            >
-              <Card className="hover-lift border-border/50 group cursor-pointer">
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-accent/10 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
-                    <Map className="w-8 h-8 text-accent" />
-                  </div>
-                  <h3 className="text-xl font-heading font-semibold mb-3">
-                    {t("services.tours.title")}
-                  </h3>
-                  <p className="text-muted-foreground">
-                    {t("services.tours.description")}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Air Tickets Card */}
-            <div
-              className="transition-all duration-500 ease-out"
-              style={{
-                opacity: servicesVisible[1] ? 1 : 0,
-                transform: servicesVisible[1] ? "translateY(0)" : "translateY(30px)",
-              }}
-            >
-              <Card className="hover-lift border-border/50 group cursor-pointer">
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-accent/10 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
-                    <Plane className="w-8 h-8 text-accent" />
-                  </div>
-                  <h3 className="text-xl font-heading font-semibold mb-3">
-                    {t("services.tickets.title")}
-                  </h3>
-                  <p className="text-muted-foreground">
-                    {t("services.tickets.description")}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Cruises Card */}
-            <div
-              className="transition-all duration-500 ease-out"
-              style={{
-                opacity: servicesVisible[2] ? 1 : 0,
-                transform: servicesVisible[2] ? "translateY(0)" : "translateY(30px)",
-              }}
-            >
-              <Card className="hover-lift border-border/50 group cursor-pointer">
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-accent/10 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
-                    <Ship className="w-8 h-8 text-accent" />
-                  </div>
-                  <h3 className="text-xl font-heading font-semibold mb-3">
-                    {t("services.cruises.title")}
-                  </h3>
-                  <p className="text-muted-foreground">
-                    {t("services.cruises.description")}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
+            {serviceCards.map((card, index) => {
+              const Icon = getIconComponent(card.icon);
+              const title = card.title[language as keyof typeof card.title] || card.title.en || "";
+              const description = card.description[language as keyof typeof card.description] || card.description.en || "";
+              
+              return (
+                <div
+                  key={card.id}
+                  className="transition-all duration-500 ease-out"
+                  style={{
+                    opacity: servicesVisible[index] ? 1 : 0,
+                    transform: servicesVisible[index] ? "translateY(0)" : "translateY(30px)",
+                  }}
+                >
+                  <Card className="hover-lift border-border/50 group cursor-pointer">
+                    <CardContent className="p-8 text-center">
+                      <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-accent/10 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                        <Icon className="w-8 h-8 text-accent" />
+                      </div>
+                      <h3 className="text-xl font-heading font-semibold mb-3">
+                        {title}
+                      </h3>
+                      <p className="text-muted-foreground">
+                        {description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -346,24 +319,25 @@ const Home = () => {
             </RevealSection>
 
             <RevealSection direction="right" delay={100}>
-              <div className="h-full min-h-[300px] rounded-xl overflow-hidden image-placeholder">
-                {settings?.map_embed_url ? (
+              {settings?.map_embed_url ? (
+                <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted group">
                   <iframe
                     src={settings.map_embed_url}
                     width="100%"
                     height="100%"
-                    style={{ border: 0, minHeight: "300px" }}
+                    style={{ border: 0 }}
                     allowFullScreen
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                     title="Office Location"
+                    className="transition-transform duration-500 group-hover:scale-105"
                   />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground">
-                    Map not configured
-                  </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="aspect-[4/3] rounded-xl bg-muted flex items-center justify-center">
+                  <p className="text-muted-foreground">Map not configured</p>
+                </div>
+              )}
             </RevealSection>
           </div>
         </div>

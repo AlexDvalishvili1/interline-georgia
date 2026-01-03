@@ -14,19 +14,24 @@ import {
   type LocalizedField,
   type WhyUsItem,
   type ServiceItem,
+  type ServiceCardItem,
   type ValueItem,
   type StatItem,
+  type FeatureItem,
 } from "@/hooks/useSiteSettings";
 import { ImageUploader } from "@/components/admin/ImageUploader";
+import { GalleryUploader } from "@/components/admin/GalleryUploader";
 import { LocalizedInput } from "@/components/admin/LocalizedInput";
 import { BlockEditor } from "@/components/admin/BlockEditor";
 import { IconPicker } from "@/components/admin/IconPicker";
+import { FeatureEditor } from "@/components/admin/FeatureEditor";
 
 // Language tabs for direct settings fields (company name, address, etc.)
+// Internal code "ka" for Georgian, but displayed as "GE" in admin UI
 const LANGUAGES = [
   { code: "en" as const, label: "English", flag: "🇬🇧" },
   { code: "ru" as const, label: "Russian", flag: "🇷🇺" },
-  { code: "ka" as const, label: "Georgian", flag: "🇬🇪" },
+  { code: "ka" as const, label: "GE", flag: "🇬🇪" },
 ];
 
 // Helper to generate unique IDs
@@ -131,10 +136,17 @@ const AdminSettings = () => {
     description: { en: "", ru: "", ka: "" },
   }), []);
 
+  const createServiceCardItem = useCallback((): ServiceCardItem => ({
+    id: generateId(),
+    icon: "map",
+    title: { en: "", ru: "", ka: "" },
+    description: { en: "", ru: "", ka: "" },
+  }), []);
+
   const createServiceItem = useCallback((): ServiceItem => ({
     id: generateId(),
     icon: "map",
-    imageUrl: "",
+    images: [],
     title: { en: "", ru: "", ka: "" },
     description: { en: "", ru: "", ka: "" },
     features: [],
@@ -156,6 +168,11 @@ const AdminSettings = () => {
   // Memoized content values to prevent unnecessary re-renders
   const whyUsItems = useMemo(() => 
     (getContent(["home", "whyUsItems"]) as WhyUsItem[]) || [],
+    [getContent]
+  );
+
+  const serviceCardItems = useMemo(() =>
+    (getContent(["home", "serviceCards"]) as ServiceCardItem[]) || [],
     [getContent]
   );
 
@@ -380,6 +397,35 @@ const AdminSettings = () => {
                 value={getContent(["home", "servicesSubtitle"]) || {}}
                 onChange={(value) => updateContent(["home", "servicesSubtitle"], value)}
               />
+              
+              <div className="pt-4 border-t">
+                <Label className="text-base font-semibold mb-4 block">Service Cards (Tours, Air Tickets, Cruises)</Label>
+                <BlockEditor
+                  items={serviceCardItems}
+                  onChange={(items) => updateContent(["home", "serviceCards"], items)}
+                  createItem={createServiceCardItem}
+                  itemLabel="Card"
+                  renderItem={(item, _index, update) => (
+                    <div className="space-y-4">
+                      <IconPicker
+                        value={item.icon}
+                        onChange={(icon) => update({ icon })}
+                      />
+                      <LocalizedInput
+                        label="Title"
+                        value={item.title}
+                        onChange={(title) => update({ title })}
+                      />
+                      <LocalizedInput
+                        label="Description"
+                        value={item.description}
+                        onChange={(description) => update({ description })}
+                        multiline
+                      />
+                    </div>
+                  )}
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -460,7 +506,7 @@ const AdminSettings = () => {
           </Card>
 
           <Card>
-            <CardHeader><CardTitle>Service Items</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Service Blocks</CardTitle></CardHeader>
             <CardContent>
               <BlockEditor
                 items={serviceItems}
@@ -474,16 +520,18 @@ const AdminSettings = () => {
                         value={item.icon}
                         onChange={(icon) => update({ icon })}
                       />
-                      <div className="space-y-2">
-                        <Label>Image</Label>
-                        <ImageUploader
-                          value={item.imageUrl || ""}
-                          onChange={(imageUrl) => update({ imageUrl })}
-                          label="Service Image"
-                          bucket="post-images"
-                        />
-                      </div>
                     </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Service Images</Label>
+                      <GalleryUploader
+                        value={item.images || []}
+                        onChange={(images) => update({ images })}
+                        label="Upload images for this service"
+                        bucket="post-images"
+                      />
+                    </div>
+
                     <LocalizedInput
                       label="Title"
                       value={item.title}
@@ -495,6 +543,15 @@ const AdminSettings = () => {
                       onChange={(description) => update({ description })}
                       multiline
                     />
+                    
+                    <div className="pt-4 border-t">
+                      <Label className="text-sm font-medium mb-3 block">Features (Checkmark List)</Label>
+                      <FeatureEditor
+                        items={item.features || []}
+                        onChange={(features) => update({ features })}
+                        label="Feature"
+                      />
+                    </div>
                   </div>
                 )}
               />
@@ -722,6 +779,11 @@ const AdminSettings = () => {
                 label="Contact Title" 
                 value={getContent(["footer", "contactTitle"]) || {}}
                 onChange={(value) => updateContent(["footer", "contactTitle"], value)}
+              />
+              <LocalizedInput 
+                label="Follow Us Title" 
+                value={getContent(["footer", "followUsTitle"]) || {}}
+                onChange={(value) => updateContent(["footer", "followUsTitle"], value)}
               />
               <LocalizedInput 
                 label="Rights Text" 

@@ -5,11 +5,11 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { LocalizedField } from "@/hooks/useSiteSettings";
 
-// Language order: English, Russian, Georgian
+// Language order: English, Russian, Georgian (internal code "ka", shown as "GE")
 const LANGUAGES = [
   { code: "en" as const, label: "English", flag: "🇬🇧" },
   { code: "ru" as const, label: "Russian", flag: "🇷🇺" },
-  { code: "ka" as const, label: "Georgian", flag: "🇬🇪" },
+  { code: "ka" as const, label: "GE", flag: "🇬🇪" },
 ];
 
 interface LocalizedInputProps {
