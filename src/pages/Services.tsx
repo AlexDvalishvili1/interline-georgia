@@ -1,45 +1,45 @@
 import { CheckCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { RevealSection } from "@/components/animations";
-import { useSiteSettings, getContentField, getContentArray, type ServiceItem } from "@/hooks/useSiteSettings";
+import { useSiteSettings, getContentField, getContentArray, type ServiceItem, type FeatureItem } from "@/hooks/useSiteSettings";
 import { getIconComponent } from "@/lib/iconMap";
 
-// Default service items when DB is empty
+// Default service items when DB is empty - will be seeded to DB
 const DEFAULT_SERVICES: ServiceItem[] = [
   {
     id: "1",
     icon: "map",
-    imageUrl: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80",
+    images: ["https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80"],
     title: { en: "Tours & Excursions", ru: "Туры и экскурсии", ka: "ტურები და ექსკურსიები" },
     description: { en: "Explore destinations worldwide with our expertly curated tours.", ru: "Исследуйте направления по всему миру с нашими турами.", ka: "გამოიკვლიეთ მიმართულებები მთელ მსოფლიოში." },
     features: [
-      { en: "Guided group tours", ru: "Групповые туры с гидом", ka: "გიდიანი ჯგუფური ტურები" },
-      { en: "Private custom tours", ru: "Индивидуальные туры", ka: "პირადი ტურები" },
-      { en: "Adventure travel", ru: "Приключенческие путешествия", ka: "სათავგადასავლო მოგზაურობა" },
+      { id: "f1", text: { en: "Guided group tours", ru: "Групповые туры с гидом", ka: "გიდიანი ჯგუფური ტურები" } },
+      { id: "f2", text: { en: "Private custom tours", ru: "Индивидуальные туры", ka: "პირადი ტურები" } },
+      { id: "f3", text: { en: "Adventure travel", ru: "Приключенческие путешествия", ka: "სათავგადასავლო მოგზაურობა" } },
     ],
   },
   {
     id: "2",
     icon: "plane",
-    imageUrl: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80",
+    images: ["https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80"],
     title: { en: "Air Tickets", ru: "Авиабилеты", ka: "ავიაბილეთები" },
     description: { en: "Best deals on flights to any destination worldwide.", ru: "Лучшие предложения на авиабилеты.", ka: "საუკეთესო შეთავაზებები ფრენებზე." },
     features: [
-      { en: "Competitive prices", ru: "Конкурентные цены", ka: "კონკურენტული ფასები" },
-      { en: "All major airlines", ru: "Все крупные авиакомпании", ka: "ყველა მთავარი ავიაკომპანია" },
-      { en: "Flexible booking", ru: "Гибкое бронирование", ka: "მოქნილი დაჯავშნა" },
+      { id: "f4", text: { en: "Competitive prices", ru: "Конкурентные цены", ka: "კონკურენტული ფასები" } },
+      { id: "f5", text: { en: "All major airlines", ru: "Все крупные авиакомпании", ka: "ყველა მთავარი ავიაკომპანია" } },
+      { id: "f6", text: { en: "Flexible booking", ru: "Гибкое бронирование", ka: "მოქნილი დაჯავშნა" } },
     ],
   },
   {
     id: "3",
     icon: "ship",
-    imageUrl: "https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&q=80",
+    images: ["https://images.unsplash.com/photo-1548574505-5e239809ee19?w=800&q=80"],
     title: { en: "Cruises", ru: "Круизы", ka: "კრუიზები" },
     description: { en: "Luxury cruise experiences on the world's best ships.", ru: "Роскошные круизы на лучших лайнерах мира.", ka: "ფუფუნების კრუიზები საუკეთესო გემებზე." },
     features: [
-      { en: "All cruise lines", ru: "Все круизные линии", ka: "ყველა საკრუიზო ხაზი" },
-      { en: "River cruises", ru: "Речные круизы", ka: "მდინარის კრუიზები" },
-      { en: "Expedition cruises", ru: "Экспедиционные круизы", ka: "საექსპედიციო კრუიზები" },
+      { id: "f7", text: { en: "All cruise lines", ru: "Все круизные линии", ka: "ყველა საკრუიზო ხაზი" } },
+      { id: "f8", text: { en: "River cruises", ru: "Речные круизы", ka: "მდინარის კრუიზები" } },
+      { id: "f9", text: { en: "Expedition cruises", ru: "Экспедиционные круизы", ka: "საექსპედიციო კრუიზები" } },
     ],
   },
 ];
@@ -91,6 +91,8 @@ const Services = () => {
               const title = service.title[language as keyof typeof service.title] || service.title.en || "";
               const description = service.description[language as keyof typeof service.description] || service.description.en || "";
               const features = service.features || [];
+              // Use first image from images array, fallback to placeholder
+              const imageUrl = service.images?.[0] || "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80";
               
               return (
                 <div
@@ -106,7 +108,7 @@ const Services = () => {
                   >
                     <div className="aspect-[4/3] rounded-xl overflow-hidden image-placeholder group">
                       <img
-                        src={service.imageUrl || "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80"}
+                        src={imageUrl}
                         alt={title}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
@@ -135,10 +137,10 @@ const Services = () => {
                     {features.length > 0 && (
                       <ul className="space-y-3">
                         {features.map((feature, featureIndex) => {
-                          const featureText = feature[language as keyof typeof feature] || feature.en || "";
+                          const featureText = feature.text?.[language as keyof typeof feature.text] || feature.text?.en || "";
                           return (
                             <li 
-                              key={featureIndex} 
+                              key={feature.id || featureIndex} 
                               className="flex items-center gap-3 transition-all duration-300 hover:translate-x-1"
                               style={{ transitionDelay: `${featureIndex * 50}ms` }}
                             >

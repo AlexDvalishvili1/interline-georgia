@@ -16,13 +16,28 @@ export interface WhyUsItem {
   description: LocalizedField;
 }
 
+// Home page service cards (Tours, Air Tickets, Cruises on home page)
+export interface ServiceCardItem {
+  id: string;
+  icon: string;
+  title: LocalizedField;
+  description: LocalizedField;
+}
+
+// Feature item with ID for proper editing (checkmark list items)
+export interface FeatureItem {
+  id: string;
+  text: LocalizedField;
+}
+
+// Services page service blocks (with multiple images and features)
 export interface ServiceItem {
   id: string;
   icon: string;
-  imageUrl: string;
+  images: string[]; // Array of image URLs (gallery)
   title: LocalizedField;
   description: LocalizedField;
-  features: LocalizedField[];
+  features: FeatureItem[]; // Array of feature items with IDs
 }
 
 export interface ValueItem {
@@ -46,6 +61,7 @@ export interface SiteContent {
     heroBgImageUrl?: string;
     servicesTitle?: LocalizedField;
     servicesSubtitle?: LocalizedField;
+    serviceCards?: ServiceCardItem[]; // Home page service cards
     whyUsTitle?: LocalizedField;
     whyUsItems?: WhyUsItem[];
     latestOffersTitle?: LocalizedField;
@@ -56,7 +72,7 @@ export interface SiteContent {
     pageSubtitle?: LocalizedField;
     ctaTitle?: LocalizedField;
     ctaSubtitle?: LocalizedField;
-    items?: ServiceItem[];
+    items?: ServiceItem[]; // Service blocks with images and features
   };
   about?: {
     pageTitle?: LocalizedField;
