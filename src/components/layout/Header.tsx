@@ -29,10 +29,6 @@ export const Header = () => {
         {href: lp("/contacts"), label: t("nav.contacts"), match: "/contacts"},
     ];
 
-    navLinks.forEach((l) => {
-        if (typeof l.href !== "string") console.error("Header href not string:", l);
-    });
-
     const isActive = (match: string) => {
         // Extract path after locale
         const pathAfterLocale = pathname.replace(/^\/(ge|ru|en)/, "");

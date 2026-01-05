@@ -1,3 +1,5 @@
+// src/app/[locale]/page.tsx
+
 "use client";
 
 import {Plane, Ship, Map, Calendar, ArrowRight, Loader2, Clock} from "lucide-react";

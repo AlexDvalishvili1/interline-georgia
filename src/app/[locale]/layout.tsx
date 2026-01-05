@@ -1,3 +1,5 @@
+// src/app/[locale]/layout.tsx
+
 import {notFound} from "next/navigation";
 import {Layout} from "@/components/layout/Layout";
 import LocaleClientWrapper from "@/components/LocaleClientWrapper";
