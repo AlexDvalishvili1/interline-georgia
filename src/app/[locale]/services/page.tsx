@@ -11,6 +11,7 @@ import {
     type FeatureItem
 } from "@/hooks/useSiteSettings";
 import {getIconComponent} from "@/lib/iconMap";
+import Image from "next/image";
 
 // Default service items when DB is empty - will be seeded to DB
 const DEFAULT_SERVICES: ServiceItem[] = [
@@ -133,11 +134,14 @@ const Page = () => {
                                         className={`order-1 ${index % 2 === 1 ? "lg:order-2" : ""}`}
                                     >
                                         <div
-                                            className="aspect-[4/3] rounded-xl overflow-hidden image-placeholder group">
-                                            <img
+                                            className="relative aspect-[4/3] rounded-xl overflow-hidden image-placeholder group">
+                                            <Image
                                                 src={imageUrl}
                                                 alt={title}
-                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                fill
+                                                sizes="(min-width: 1024px) 50vw, 100vw"
+                                                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                                loading="lazy"
                                             />
                                         </div>
                                     </RevealSection>

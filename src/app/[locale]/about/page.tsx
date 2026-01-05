@@ -12,6 +12,7 @@ import {
     type StatItem
 } from "@/hooks/useSiteSettings";
 import {getIconComponent} from "@/lib/iconMap";
+import Image from "next/image";
 
 // Default values when DB is empty
 const DEFAULT_VALUES: ValueItem[] = [
@@ -103,11 +104,14 @@ const Page = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         {/* Image */}
                         <RevealSection direction="left">
-                            <div className="aspect-[4/3] rounded-xl overflow-hidden image-placeholder group">
-                                <img
+                            <div className="relative aspect-[4/3] rounded-xl overflow-hidden image-placeholder group">
+                                <Image
                                     src={aboutImageUrl}
                                     alt="About Us"
-                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                    fill
+                                    sizes="(min-width: 1024px) 50vw, 100vw"
+                                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                    loading="lazy"
                                 />
                             </div>
                         </RevealSection>

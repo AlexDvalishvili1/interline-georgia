@@ -6,13 +6,28 @@ import {useLanguage} from "@/contexts/LanguageContext";
 import {languageToUrlLocale, type UrlLocale} from "@/hooks/useLocalizedPath";
 import {ChevronDown} from "lucide-react";
 import {cn} from "@/lib/utils";
+import ReactCountryFlag from "react-country-flag";
 
-// URL locale codes for display
-const languages: { urlCode: UrlLocale; label: string; flag: string; shortCode: string }[] = [
-    {urlCode: "ge", label: "ქართული", flag: "🇬🇪", shortCode: "GE"},
-    {urlCode: "ru", label: "Русский", flag: "🇷🇺", shortCode: "RU"},
-    {urlCode: "en", label: "English", flag: "🇬🇧", shortCode: "EN"},
+const languages: { urlCode: UrlLocale; label: string; countryCode: string; shortCode: string }[] = [
+    {urlCode: "ge", label: "ქართული", countryCode: "GE", shortCode: "GE"},
+    {urlCode: "ru", label: "Русский", countryCode: "RU", shortCode: "RU"},
+    {urlCode: "en", label: "English", countryCode: "US", shortCode: "EN"},
 ];
+
+const Flag = ({code}: { code: string }) => (
+    <ReactCountryFlag
+        countryCode={code}
+        svg
+        aria-label={code}
+        style={{
+            width: "1.25rem",   // ~ w-5
+            height: "0.9rem",   // ~ h-3/4-ish
+            borderRadius: "2px",
+            overflow: "hidden",
+            display: "inline-block",
+        }}
+    />
+);
 
 export const LanguageSwitcher = () => {
     const {language} = useLanguage();
@@ -27,11 +42,9 @@ export const LanguageSwitcher = () => {
     const buttonRef = useRef<HTMLButtonElement>(null);
     const [focusedIndex, setFocusedIndex] = useState(-1);
 
-    // Get current URL locale (fallback to language from context)
     const currentUrlLocale = (locale as UrlLocale | undefined) ?? languageToUrlLocale(language);
     const currentLang = languages.find((l) => l.urlCode === currentUrlLocale) ?? languages[0];
 
-    // Close on outside click
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -44,7 +57,6 @@ export const LanguageSwitcher = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [isOpen]);
 
-    // Close on ESC
     useEffect(() => {
         const handleEsc = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
@@ -60,13 +72,11 @@ export const LanguageSwitcher = () => {
 
     const handleSelect = useCallback(
         (newUrlLocale: UrlLocale) => {
-            // Replace only the first segment if it's a locale; otherwise just prefix
             const pathWithoutLocale = pathname.replace(/^\/(ge|ru|en)(?=\/|$)/, "") || "";
             const query = searchParams.toString();
             const nextUrl = `/${newUrlLocale}${pathWithoutLocale}${query ? `?${query}` : ""}`;
 
             router.push(nextUrl);
-
             setIsOpen(false);
             setFocusedIndex(-1);
         },
@@ -122,8 +132,8 @@ export const LanguageSwitcher = () => {
                 aria-haspopup="listbox"
                 aria-label="Select language"
             >
-        <span className="text-base" aria-hidden="true">
-          {currentLang.flag}
+        <span aria-hidden="true">
+          <Flag code={currentLang.countryCode}/>
         </span>
                 <span className="hidden sm:inline">{currentLang.label}</span>
                 <ChevronDown
@@ -132,7 +142,6 @@ export const LanguageSwitcher = () => {
                 />
             </button>
 
-            {/* Dropdown Menu */}
             <div
                 className={cn(
                     "absolute right-0 mt-2 w-40 py-1 rounded-lg shadow-lg z-50",
@@ -158,8 +167,8 @@ export const LanguageSwitcher = () => {
                         aria-selected={currentUrlLocale === lang.urlCode}
                         tabIndex={-1}
                     >
-            <span className="text-base" aria-hidden="true">
-              {lang.flag}
+            <span aria-hidden="true">
+              <Flag code={lang.countryCode}/>
             </span>
                         <span>{lang.label}</span>
                     </button>

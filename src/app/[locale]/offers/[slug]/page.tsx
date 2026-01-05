@@ -12,6 +12,7 @@ import {ImageLightbox} from "@/components/ui/image-lightbox";
 import {useLocalizedPath} from "@/hooks/useLocalizedPath";
 import Link from "next/link";
 import {useParams} from "next/navigation";
+import Image from "next/image";
 
 const Page = () => {
     const {slug} = useParams<{ slug: string }>();
@@ -67,10 +68,13 @@ const Page = () => {
             <section className="relative h-[50vh] min-h-[400px] overflow-hidden">
                 <div className="absolute inset-0 bg-muted">
                     {post.cover_image_url ? (
-                        <img
+                        <Image
                             src={post.cover_image_url}
                             alt={getLocalizedField(post, "title", language)}
-                            className="w-full h-full object-cover"
+                            fill
+                            priority
+                            sizes="100vw"
+                            className="object-cover"
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-muted-foreground">
@@ -143,16 +147,19 @@ const Page = () => {
                                         <button
                                             key={i}
                                             onClick={() => openLightbox(i)}
-                                            className="aspect-square rounded-lg overflow-hidden bg-muted group transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-accent"
+                                            className="relative aspect-square rounded-lg overflow-hidden bg-muted group transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-accent"
                                             style={{
                                                 opacity: galleryVisible[i] ? 1 : 0,
                                                 transform: galleryVisible[i] ? "scale(1)" : "scale(0.95)",
                                             }}
                                         >
-                                            <img
+                                            <Image
                                                 src={img}
                                                 alt={`Gallery image ${i + 1}`}
-                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                fill
+                                                sizes="(min-width: 768px) 33vw, 50vw"
+                                                className="object-cover transition-transform duration-500 group-hover:scale-110"
+                                                loading="lazy"
                                             />
                                         </button>
                                     ))}

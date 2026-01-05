@@ -5,6 +5,7 @@ import {useLanguage} from "@/contexts/LanguageContext";
 import {useSiteSettings, getLocalizedSettingsField, getContentField} from "@/hooks/useSiteSettings";
 import {useLocalizedPath} from "@/hooks/useLocalizedPath";
 import Link from "next/link";
+import Image from "next/image";
 
 // TikTok icon component
 const TikTokIcon = ({size = 20}: { size?: number }) => (
@@ -57,10 +58,14 @@ export const Footer = () => {
                     <div>
                         <Link href={lp("/")} className="inline-flex items-center gap-3 mb-4">
                             {settings?.logo_url && (
-                                <img
+                                <Image
                                     src={settings.logo_url}
                                     alt="Logo"
-                                    className="h-8 w-auto object-contain brightness-0 invert"
+                                    className="h-8 w-auto object-contain"
+                                    width={120}
+                                    height={32}
+                                    loading="lazy"
+                                    decoding="async"
                                 />
                             )}
                             <div>
@@ -156,17 +161,9 @@ export const Footer = () => {
 
                 {/* Bottom Bar */}
                 <div className="mt-12 pt-6 border-t border-primary-foreground/10">
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
-                        <p className="text-sm opacity-70">
-                            © {currentYear} {companyName}. {rightsText}.
-                        </p>
-                        {/* Debug: show updated_at */}
-                        {settings?.updated_at && (
-                            <p className="text-xs opacity-50">
-                                DB: {new Date(settings.updated_at).toLocaleString()}
-                            </p>
-                        )}
-                    </div>
+                    <p className="text-sm opacity-70">
+                        © {currentYear} {companyName}. {rightsText}.
+                    </p>
                 </div>
             </div>
         </footer>

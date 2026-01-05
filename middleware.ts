@@ -11,12 +11,6 @@ export function middleware(req: NextRequest) {
         return NextResponse.next();
     }
 
-    if (pathname === "/") {
-        const url = req.nextUrl.clone();
-        url.pathname = "/ge";
-        return NextResponse.redirect(url);
-    }
-
     const match = pathname.match(/^\/([^/]+)(\/.*)?$/);
     if (!match) return NextResponse.next();
 

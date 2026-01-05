@@ -20,6 +20,7 @@ import {
 import {useLocalizedPath} from "@/hooks/useLocalizedPath";
 import {getIconComponent} from "@/lib/iconMap";
 import Link from "next/link";
+import Image from "next/image";
 
 // Default "Why Us" items when DB is empty - will be seeded to DB
 const DEFAULT_WHY_US_ITEMS: WhyUsItem[] = [
@@ -110,7 +111,7 @@ const Page = () => {
     // Get content from site_content with fallback to translation keys
     const heroTitle = getContentField(content, "home.heroTitle", language) || t("hero.title");
     const heroSubtitle = getContentField(content, "home.heroSubtitle", language) || t("hero.subtitle");
-    const heroBgUrl = getContentField(content, "home.heroBgImageUrl", language) || "https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1920&q=80";
+    const heroBgUrl = getContentField(content, "home.heroBgImageUrl", language) || "https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1600&q=70";
     const servicesTitle = getContentField(content, "home.servicesTitle", language) || t("services.title");
     const servicesSubtitle = getContentField(content, "home.servicesSubtitle", language) || t("services.subtitle");
     const whyUsTitle = getContentField(content, "home.whyUsTitle", language) || t("whyUs.title");
@@ -138,10 +139,14 @@ const Page = () => {
         <div className="flex flex-col">
             {/* Hero Section */}
             <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
-                <div className="absolute inset-0 image-placeholder bg-gradient-to-br from-primary/90 to-primary/70">
-                    <div
-                        className="absolute inset-0 bg-cover bg-center opacity-30"
-                        style={{backgroundImage: `url('${heroBgUrl}')`}}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/90 to-primary/70">
+                    <Image
+                        src={heroBgUrl}
+                        alt=""
+                        fill
+                        priority
+                        sizes="100vw"
+                        className="object-cover object-center opacity-30"
                     />
                 </div>
 
@@ -297,12 +302,15 @@ const Page = () => {
                                     >
                                         <Link href={lp(`/offers/${post.slug}`)}>
                                             <Card className="overflow-hidden hover-lift group cursor-pointer h-full">
-                                                <div className="aspect-[16/10] overflow-hidden bg-muted">
+                                                <div className="relative aspect-[16/10] overflow-hidden bg-muted">
                                                     {post.cover_image_url ? (
-                                                        <img
+                                                        <Image
                                                             src={post.cover_image_url}
                                                             alt={getLocalizedField(post, "title", language)}
-                                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                            fill
+                                                            sizes="(max-width: 768px) 100vw, 33vw"
+                                                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                                            loading="lazy"
                                                         />
                                                     ) : (
                                                         <div

@@ -10,6 +10,7 @@ import {cn} from "@/lib/utils";
 import logoSvg from "@/assets/logo.svg";
 import Link from "next/link";
 import {usePathname} from 'next/navigation'
+import Image from "next/image";
 
 export const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -43,10 +44,13 @@ export const Header = () => {
                 <div className="flex h-16 items-center justify-between">
                     {/* Logo */}
                     <Link href={lp("/")} className="flex items-center gap-3">
-                        <img
+                        <Image
                             src={logoUrl}
                             alt="Logo"
+                            width={160}   // pick a reasonable max width for your header
+                            height={40}   // matches your h-10-ish
                             className="h-8 md:h-10 w-auto object-contain"
+                            priority
                         />
                         <div className="flex items-center gap-2">
               <span className="text-2xl font-heading font-bold text-primary">

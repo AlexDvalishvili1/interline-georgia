@@ -11,6 +11,7 @@ import {useStaggerReveal} from "@/hooks/useRevealOnScroll";
 import {usePosts, getLocalizedField, type Post} from "@/hooks/usePosts";
 import {useLocalizedPath} from "@/hooks/useLocalizedPath";
 import Link from "next/link";
+import Image from "next/image";
 
 const Page = () => {
     const {t, language} = useLanguage();
@@ -138,12 +139,15 @@ const PostGrid = ({posts, language, t, isLoading, lp}: PostGridProps) => {
                 >
                     <Link href={lp(`/offers/${post.slug}`)}>
                         <Card className="overflow-hidden hover-lift h-full group">
-                            <div className="aspect-[16/10] overflow-hidden bg-muted">
+                            <div className="relative aspect-[16/10] overflow-hidden bg-muted">
                                 {post.cover_image_url ? (
-                                    <img
+                                    <Image
                                         src={post.cover_image_url}
                                         alt={getLocalizedField(post, "title", language)}
-                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                        fill
+                                        sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                        loading="lazy"
                                     />
                                 ) : (
                                     <div
