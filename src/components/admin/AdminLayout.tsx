@@ -23,24 +23,20 @@ export const AdminLayout = ({children}: AdminLayoutProps) => {
     const router = useRouter();
     const pathname = usePathname();
 
-    // ✅ redirect in an effect (not during render)
+    // ✅ single redirect effect (ALWAYS called, never conditionally)
     useEffect(() => {
         if (!isLoading && !user) {
-            router.push("/admin/auth");
+            router.replace("/admin/auth");
         }
     }, [isLoading, user, router]);
 
-    if (isLoading) {
+    // ✅ single loading state
+    if (isLoading || !user) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
                 <Loader2 className="w-8 h-8 animate-spin text-accent"/>
             </div>
         );
-    }
-
-    // While redirecting, render nothing (or a loader)
-    if (!user) {
-        return null;
     }
 
     if (!isAdmin) {
@@ -49,7 +45,7 @@ export const AdminLayout = ({children}: AdminLayoutProps) => {
                 <div className="text-center max-w-md">
                     <h1 className="text-2xl font-heading font-bold mb-4">Access Denied</h1>
                     <p className="text-muted-foreground mb-6">
-                        You don't have admin privileges. Please contact an administrator to get access.
+                        You don&apos;t have admin privileges. Please contact an administrator to get access.
                     </p>
                     <div className="flex gap-4 justify-center">
                         <Button asChild variant="outline">
