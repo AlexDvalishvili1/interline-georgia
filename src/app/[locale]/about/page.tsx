@@ -144,31 +144,39 @@ const Page = () => {
                         </h2>
                     </RevealSection>
 
-                    <div ref={valuesRef as React.RefObject<HTMLDivElement>}
-                         className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div
+                        ref={valuesRef as React.RefObject<HTMLDivElement>}
+                        className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch"
+                    >
                         {values.map((value, index) => {
                             const Icon = getIconComponent(value.icon);
-                            const title = value.title[language as keyof typeof value.title] || value.title.en || "";
-                            const valueDescription = value.description[language as keyof typeof value.description] || value.description.en || "";
+                            const title =
+                                value.title[language as keyof typeof value.title] || value.title.en || "";
+                            const valueDescription =
+                                value.description[language as keyof typeof value.description] ||
+                                value.description.en ||
+                                "";
 
                             return (
                                 <div
                                     key={value.id}
-                                    className="transition-all duration-500 ease-out"
+                                    className="transition-all duration-500 ease-out h-full"
                                     style={{
                                         opacity: valuesVisible[index] ? 1 : 0,
                                         transform: valuesVisible[index] ? "translateY(0)" : "translateY(30px)",
                                     }}
                                 >
-                                    <Card className="hover-lift group">
-                                        <CardContent className="p-8 text-center">
+                                    <Card className="hover-lift group h-full">
+                                        <CardContent className="p-8 text-center h-full flex flex-col">
                                             <div
                                                 className="w-16 h-16 mx-auto mb-6 rounded-full bg-gold/20 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
                                                 <Icon className="w-8 h-8 text-gold"/>
                                             </div>
+
                                             <h3 className="text-xl font-heading font-semibold mb-3">
                                                 {title}
                                             </h3>
+
                                             <p className="text-muted-foreground">
                                                 {valueDescription}
                                             </p>

@@ -161,7 +161,7 @@ export const Footer = () => {
 
                 {/* Bottom Bar */}
                 <div className="mt-12 pt-6 border-t border-primary-foreground/10">
-                    <p className="text-sm opacity-70">
+                    <p className="text-sm opacity-70 text-center">
                         © {currentYear} {companyName}. {rightsText}.
                     </p>
                 </div>

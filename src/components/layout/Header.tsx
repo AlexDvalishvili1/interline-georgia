@@ -43,7 +43,7 @@ export const Header = () => {
             <div className="container-custom">
                 <div className="flex h-16 items-center justify-between">
                     {/* Logo */}
-                    <Link href={lp("/")} className="flex items-center gap-3">
+                    <Link href={lp("/")} className="flex items-center gap-3 max-[375px]:gap-1.5">
                         <Image
                             src={logoUrl}
                             alt="Logo"
@@ -56,14 +56,14 @@ export const Header = () => {
               <span className="text-2xl font-heading font-bold text-primary">
                 {companyName.split(" ")[0] || "Interline"}
               </span>
-                            <span className="hidden sm:inline text-xs text-muted-foreground uppercase tracking-widest">
+                            <span className="hidden xl:inline text-xs text-muted-foreground uppercase tracking-widest">
                 {companyName.split(" ").slice(1).join(" ") || "Georgia"}
               </span>
                         </div>
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <nav className="hidden md:flex items-center gap-8">
+                    <nav className="hidden min-[1100px]:flex items-center gap-8">
                         {navLinks.map((link) => (
                             <Link
                                 key={link.href}
@@ -81,12 +81,12 @@ export const Header = () => {
                     </nav>
 
                     {/* Language Switcher & Mobile Menu */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 max-[375px]:gap-1">
                         <LanguageSwitcher/>
 
                         {/* Mobile Menu Button */}
                         <button
-                            className="md:hidden p-2 text-foreground"
+                            className="min-[1100px]:hidden p-2 text-foreground"
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
                             aria-label="Toggle menu"
                         >

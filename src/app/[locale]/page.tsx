@@ -192,31 +192,41 @@ const Page = () => {
                         </p>
                     </RevealSection>
 
-                    <div ref={servicesRef as React.RefObject<HTMLDivElement>}
-                         className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div
+                        ref={servicesRef as React.RefObject<HTMLDivElement>}
+                        className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch"
+                    >
                         {serviceCards.map((card, index) => {
                             const Icon = getIconComponent(card.icon);
-                            const title = card.title[language as keyof typeof card.title] || card.title.en || "";
-                            const description = card.description[language as keyof typeof card.description] || card.description.en || "";
+                            const title =
+                                card.title[language as keyof typeof card.title] || card.title.en || "";
+                            const description =
+                                card.description[language as keyof typeof card.description] ||
+                                card.description.en ||
+                                "";
 
                             return (
                                 <div
                                     key={card.id}
-                                    className="transition-all duration-500 ease-out"
+                                    className="transition-all duration-500 ease-out h-full"
                                     style={{
                                         opacity: servicesVisible[index] ? 1 : 0,
-                                        transform: servicesVisible[index] ? "translateY(0)" : "translateY(30px)",
+                                        transform: servicesVisible[index]
+                                            ? "translateY(0)"
+                                            : "translateY(30px)",
                                     }}
                                 >
-                                    <Card className="hover-lift border-border/50 group cursor-pointer">
-                                        <CardContent className="p-8 text-center">
+                                    <Card className="hover-lift border-border/50 group cursor-pointer h-full">
+                                        <CardContent className="p-8 text-center h-full flex flex-col">
                                             <div
                                                 className="w-16 h-16 mx-auto mb-6 rounded-full bg-accent/10 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
                                                 <Icon className="w-8 h-8 text-accent"/>
                                             </div>
+
                                             <h3 className="text-xl font-heading font-semibold mb-3">
                                                 {title}
                                             </h3>
+
                                             <p className="text-muted-foreground">
                                                 {description}
                                             </p>
@@ -273,8 +283,9 @@ const Page = () => {
             <section className="section-padding bg-background">
                 <div className="container-custom">
                     <RevealSection>
-                        <div className="flex items-center justify-between mb-12">
-                            <h2 className="text-3xl md:text-4xl font-heading font-bold">
+                        <div
+                            className="flex items-center sm:justify-between mb-12 max-sm:flex-col max-sm:gap-10 justify-center">
+                            <h2 className="text-3xl md:text-4xl font-heading font-bold max-sm:text-center">
                                 {latestOffersTitle}
                             </h2>
                             <Button asChild variant="outline" className="transition-all duration-300 hover:scale-105">
@@ -290,11 +301,11 @@ const Page = () => {
                             </div>
                         ) : latestOffers && latestOffers.length > 0 ? (
                             <div ref={offersRef as React.RefObject<HTMLDivElement>}
-                                 className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                 className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
                                 {latestOffers.map((post, index) => (
                                     <div
                                         key={post.id}
-                                        className="transition-all duration-500 ease-out"
+                                        className="transition-all duration-500 ease-out h-full"
                                         style={{
                                             opacity: offersVisible[index] ? 1 : 0,
                                             transform: offersVisible[index] ? "translateY(0)" : "translateY(30px)",

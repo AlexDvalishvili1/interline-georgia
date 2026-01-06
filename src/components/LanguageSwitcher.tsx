@@ -124,7 +124,7 @@ export const LanguageSwitcher = () => {
                 onClick={() => setIsOpen(!isOpen)}
                 onKeyDown={handleKeyDown}
                 className={cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium",
+                    "flex items-center gap-2 px-3 py-2 max-[375px]:px-1.5 rounded-md text-sm font-medium",
                     "bg-secondary hover:bg-secondary/80 transition-colors duration-200",
                     "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
                 )}
